@@ -2,13 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace H2ToH3EffectConverter
 {
     internal class Program
     {
+        private class TagReferenceData
+        {
+            public string path {  get; set; }
+            public string extension { get; set; }
+        }
+
         static void Main(string[] args)
         {
             string h3ekPath = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\H3EK";
@@ -34,6 +42,7 @@ namespace H2ToH3EffectConverter
 
                 List<string> effectMarkers = new List<string>();
 
+                // MARKERS
                 Console.WriteLine("Reading markers:");
                 foreach (XmlNode markerElement in effectFile.SelectNodes("//block[@name='locations']/element"))
                 {
@@ -46,8 +55,48 @@ namespace H2ToH3EffectConverter
                     }
                     
                 }
-
                 Console.WriteLine("Finished reading effect markers.\n");
+
+                // EVENTS
+                foreach (XmlNode eventElement in effectFile.SelectNodes("//block[@name='events']/element"))
+                {
+                    Console.WriteLine($"\nREADING EVENT {eventElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(eventElement)}:");
+
+                    float skipFraction = float.Parse(eventElement.SelectSingleNode("./field[@name='skip fraction']").InnerText.Trim());
+                    float[] delayBounds = eventElement.SelectSingleNode("./field[@name='delay bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
+                    float[] durationBounds = eventElement.SelectSingleNode("./field[@name='duration bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
+                    Console.WriteLine($"Skip fraction: {skipFraction}\nDelay bounds: {string.Join(", ", delayBounds)}\nDuration bounds: {string.Join(", ", durationBounds)}");
+
+                    // PARTS
+                    foreach (XmlNode partElement in eventElement.SelectNodes("//block[@name='parts']/element"))
+                    {
+                        Console.WriteLine($"\n\tREADING PART {partElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(partElement)}:");
+
+                        int environment = int.Parse(partElement.SelectNodes("./field[@name='create in']")[0].InnerText.Trim().Substring(0, 1));
+                        int mode = int.Parse(partElement.SelectNodes("./field[@name='create in']")[1].InnerText.Trim().Substring(0, 1));
+                        int location = int.Parse(partElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
+                        int flags = int.Parse(partElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim());
+                        TagReferenceData tagRef = new TagReferenceData
+                        {
+                            path = partElement.SelectSingleNode("./tag_reference[@name='type']").InnerText.Trim(),
+                            extension = partElement.SelectSingleNode("./tag_reference[@name='type']").Attributes["type"].Value
+                        };
+                        float[] velocityBounds = partElement.SelectSingleNode("./field[@name='velocity bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
+                        float velocityConeAngle = float.Parse(partElement.SelectSingleNode("./field[@name='velocity cone angle']").InnerText.Trim());
+                        float[] angularVelocityBounds = partElement.SelectSingleNode("./field[@name='angular velocity bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
+                        float[] radiusModifierBounds = partElement.SelectSingleNode("./field[@name='radius modifier bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
+                        Console.WriteLine($"\tSkip fraction: {skipFraction}\n" +
+                            $"\tEnvironment: {environment}\n" +
+                            $"\tMode: {mode}\n" +
+                            $"\tMarker index: {location}\n" +
+                            $"\tFlags: {flags}\n" +
+                            $"\tTag reference: {tagRef.path}.{tagRef.extension}\n" +
+                            $"\tVelocity bounds: {string.Join(", ", velocityBounds)}\n" +
+                            $"\tVelocity cone angle: {velocityConeAngle}\n" +
+                            $"\tAngular velocity bounds: {string.Join(", ", angularVelocityBounds)}\n" +
+                            $"\tRadius modifier bounds: {string.Join(", ", radiusModifierBounds)}");
+                    }
+                }
             }
         }
 
