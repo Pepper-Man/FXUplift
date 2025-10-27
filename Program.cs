@@ -31,32 +31,23 @@ namespace H2ToH3EffectConverter
             {
                 XmlDocument effectFile = new XmlDocument();
                 effectFile.Load(reader);
-                XmlNode root = effectFile.DocumentElement;
 
-                XmlNodeList markersBlock = root.SelectNodes(".//block[@name='locations']");
                 List<string> effectMarkers = new List<string>();
 
-                foreach (XmlNode marker in markersBlock)
+                Console.WriteLine("Reading markers:");
+                foreach (XmlNode markerElement in effectFile.SelectNodes("//block[@name='locations']/element"))
                 {
-                    bool end = false;
-                    int i = 0;
-
-                    while (!end)
+                    XmlNode name = markerElement.SelectSingleNode("./field[@name='marker name']");
+                    if (name != null)
                     {
-                        XmlNode element = marker.SelectSingleNode("./element[@index='" + i + "']");
-                        if (element != null)
-                        {
-                            effectMarkers.Add(element.SelectSingleNode("./field[@name='marker name']").InnerText.Trim());
-                            i++;
-                        }
-                        else
-                        {
-                            end = true;
-                            Console.WriteLine("Finished reading effect markers.");
-                        }
+                        string markerName = name.InnerText.Trim();
+                        Console.WriteLine(markerName);
+                        effectMarkers.Add(markerName);
                     }
                     
                 }
+
+                Console.WriteLine("Finished reading effect markers.\n");
             }
         }
 
