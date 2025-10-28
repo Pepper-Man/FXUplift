@@ -11,10 +11,47 @@ namespace H2ToH3EffectConverter
 {
     internal class Program
     {
+        private class Effect
+        {
+            public string[] Markers { get; set; }
+            public Event[] Events { get; set; }
+            public TagReferenceData LoopingSound {  get; set; }
+            public float AlwaysDistance { get; set; }
+            public float NeverDistance { get; set; }
+        }
+
+        private class Event
+        {
+            public int Flags { get; set; }
+            public float SkipFraction { get; set; }
+            public float[] DelayBounds { get; set; }
+            public float[] DurationBounds { get; set; }
+            public Part[] Parts { get; set; }
+            public ParticleSystem[] ParticleSystems { get; set; }
+        }
+
+        private class Part
+        {
+            public int Environment {  get; set; }
+            public int Mode { get; set; }
+            public int Location { get; set; }
+            public int Flags { get; set; }
+            public TagReferenceData TagRef { get; set; }
+            public float[] VelocityBounds { get; set; }
+            public float VelocityConeAngle { get; set; }
+            public float[] AngularVelocityBounds { get; set; }
+            public float[] RadiusModifierBounds { get; set; }
+        }
+
+        private class ParticleSystem
+        {
+
+        }
+
         private class TagReferenceData
         {
-            public string path {  get; set; }
-            public string extension { get; set; }
+            public string Path {  get; set; }
+            public string Extension { get; set; }
         }
 
         static void Main(string[] args)
@@ -26,8 +63,10 @@ namespace H2ToH3EffectConverter
             GetDataFromXML(h2EffectPath);
         }
 
-        static void GetDataFromXML(string xmlPath)
+        static Effect GetDataFromXML(string xmlPath)
         {
+            Effect effect = new Effect();
+
             XmlReaderSettings settings = new XmlReaderSettings
             {
                 ValidationType = ValidationType.None,
@@ -55,6 +94,7 @@ namespace H2ToH3EffectConverter
                     }
                     
                 }
+                effect.Markers = effectMarkers.ToArray();
                 Console.WriteLine("Finished reading effect markers.\n");
 
                 // EVENTS
@@ -78,8 +118,8 @@ namespace H2ToH3EffectConverter
                         int flags = int.Parse(partElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim());
                         TagReferenceData tagRef = new TagReferenceData
                         {
-                            path = partElement.SelectSingleNode("./tag_reference[@name='type']").InnerText.Trim(),
-                            extension = partElement.SelectSingleNode("./tag_reference[@name='type']").Attributes["type"].Value
+                            Path = partElement.SelectSingleNode("./tag_reference[@name='type']").InnerText.Trim(),
+                            Extension = partElement.SelectSingleNode("./tag_reference[@name='type']").Attributes["type"].Value
                         };
                         float[] velocityBounds = partElement.SelectSingleNode("./field[@name='velocity bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
                         float velocityConeAngle = float.Parse(partElement.SelectSingleNode("./field[@name='velocity cone angle']").InnerText.Trim());
@@ -90,7 +130,7 @@ namespace H2ToH3EffectConverter
                             $"\tMode: {mode}\n" +
                             $"\tMarker index: {location}\n" +
                             $"\tFlags: {flags}\n" +
-                            $"\tTag reference: {tagRef.path}.{tagRef.extension}\n" +
+                            $"\tTag reference: {tagRef.Path}.{tagRef.Extension}\n" +
                             $"\tVelocity bounds: {string.Join(", ", velocityBounds)}\n" +
                             $"\tVelocity cone angle: {velocityConeAngle}\n" +
                             $"\tAngular velocity bounds: {string.Join(", ", angularVelocityBounds)}\n" +
