@@ -209,7 +209,7 @@ namespace H2ToH3EffectConverter
 
                         // EMITTERS
                         List<Emitter> emitters = new List<Emitter>();
-                        foreach (XmlNode emitterElement in particleSysElement.SelectNodes("//block[@name='emitters']/element"))
+                        foreach (XmlNode emitterElement in particleSysElement.SelectNodes(".//block[@name='emitters']/element"))
                         {
                             Emitter emitter = new Emitter();
                             Console.WriteLine($"\n\tREADING EMITTER {emitterElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(emitterElement)}:");
