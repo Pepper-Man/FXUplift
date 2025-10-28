@@ -45,7 +45,46 @@ namespace H2ToH3EffectConverter
 
         private class ParticleSystem
         {
+            public string Name { get; set; }
+            public TagReferenceData ParticleRef { get; set; }
+            public int Location { get; set; }
+            public int CoordSystem { get; set; }
+            public int Environment { get; set; }
+            public int Mode { get; set; }
+            public int CameraMode { get; set; }
+            public int SortBias { get; set; }
+            public int Flags { get; set; }
+            public float LodIn {  get; set; }
+            public float LodFInDelta { get; set; }
+            public float LodOut { get; set; }
+            public float LodFOutDelta { get; set; }
+            public Emitter[] Emitters { get; set; }
+        }
 
+        private class Emitter
+        {
+            public TagReferenceData PhysicsRef { get; set; }
+            public Halo2Function EmissionRate { get; set; }
+            public Halo2Function Lifespan { get; set; }
+            public Halo2Function Velocity { get; set; }
+            public Halo2Function AngularVelocity { get; set; }
+            public Halo2Function Size { get; set; }
+            public Halo2Function Tint { get; set; }
+            public Halo2Function Alpha { get; set; }
+            public int EmissionShape { get; set; }
+            public Halo2Function Radius { get; set; }
+            public Halo2Function Angle { get; set; }
+            public float[] TransOffset { get; set; }
+            public float[] RelativeDir { get; set; }
+        }
+
+        private class Halo2Function
+        {
+            public int InputVar { get; set; }
+            public int RangeVar { get; set; }
+            public int OutputMod { get; set; }
+            public int OutputModInput { get; set; }
+            public int[] Data { get; set; }
         }
 
         private class TagReferenceData
@@ -141,8 +180,87 @@ namespace H2ToH3EffectConverter
 
                         parts.Add(part);
                     }
-
                     eventData.Parts = parts.ToArray();
+
+                    // PARTICLE SYSTEMS
+                    List<ParticleSystem> particleSystems = new List<ParticleSystem>();
+                    foreach (XmlNode particleSysElement in eventElement.SelectNodes("//block[@name='particle systems']/element"))
+                    {
+                        ParticleSystem particleSystem = new ParticleSystem();
+                        Console.WriteLine($"\n\tREADING PARTICLE SYSTEM {particleSysElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(particleSysElement)}:");
+
+                        particleSystem.Name = particleSysElement.Attributes["name"].Value;
+                        particleSystem.ParticleRef = new TagReferenceData
+                        {
+                            Path = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").InnerText.Trim(),
+                            Extension = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").Attributes["type"].Value
+                        };
+                        particleSystem.Location = int.Parse(particleSysElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
+                        particleSystem.CoordSystem = int.Parse(particleSysElement.SelectNodes("./field[@name='coordinate system']")[0].InnerText.Trim().Substring(0, 1));
+                        particleSystem.Environment = int.Parse(particleSysElement.SelectNodes("./field[@name='environment']")[0].InnerText.Trim().Substring(0, 1));
+                        particleSystem.Mode = int.Parse(particleSysElement.SelectNodes("./field[@name='disposition']")[0].InnerText.Trim().Substring(0, 1));
+                        particleSystem.CameraMode = int.Parse(particleSysElement.SelectNodes("./field[@name='camera mode']")[0].InnerText.Trim().Substring(0, 1));
+                        particleSystem.SortBias = int.Parse(particleSysElement.SelectNodes("./field[@name='sort bias']")[0].InnerText.Trim().Substring(0, 1));
+                        particleSystem.Flags = int.Parse(particleSysElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim());
+                        particleSystem.LodIn = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD in distance']").InnerText.Trim());
+                        particleSystem.LodFInDelta = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD feather in delta']").InnerText.Trim());
+                        particleSystem.LodOut = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD out distance']").InnerText.Trim());
+                        particleSystem.LodFOutDelta = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD feather out delta']").InnerText.Trim());
+
+                        // EMITTERS
+                        List<Emitter> emitters = new List<Emitter>();
+                        foreach (XmlNode emitterElement in particleSysElement.SelectNodes("//block[@name='emitters']/element"))
+                        {
+                            Emitter emitter = new Emitter();
+                            Console.WriteLine($"\n\tREADING EMITTER {emitterElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(emitterElement)}:");
+
+                            if(emitterElement.SelectSingleNode("./tag_reference[@name='particle physics']").InnerText.Trim() != "")
+                            {
+                                emitter.PhysicsRef = new TagReferenceData
+                                {
+                                    Path = emitterElement.SelectSingleNode("./tag_reference[@name='particle physics']").InnerText.Trim(),
+                                    Extension = emitterElement.SelectSingleNode("./tag_reference[@name='particle physics']").Attributes["type"].Value
+                                };
+                            }
+                            
+                            XmlNodeList functionFieldGroups = emitterElement.SelectNodes("./field[@name='Input Variable']");
+                            List<Halo2Function> functions = new List<Halo2Function>();
+
+                            foreach (XmlNode inputVarField in functionFieldGroups)
+                            {
+                                Halo2Function func = new Halo2Function();
+
+                                func.InputVar = funcInputMapping[inputVarField.InnerText.Trim()];
+                                func.RangeVar = funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Range Variable']")?.InnerText.Trim()];
+                                func.OutputMod = int.Parse(inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier']")?.InnerText.Trim().Substring(0, 1));
+                                func.OutputModInput = funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier Input']")?.InnerText.Trim()];
+
+                                // Read data block
+                                XmlNode dataBlock = inputVarField.SelectSingleNode("following-sibling::block[@name='data']");
+                                func.Data = dataBlock.SelectNodes("./element/field[@name='Value']").Cast<XmlNode>().Select(n => int.Parse(n.InnerText.Trim())).ToArray();
+                                
+                                functions.Add(func);
+                            }
+
+                            // Same order as defined in the H2 tag
+                            emitter.EmissionRate = functions[0];
+                            emitter.Lifespan = functions[1];
+                            emitter.Velocity = functions[2];
+                            emitter.AngularVelocity = functions[3];
+                            emitter.Size = functions[4];
+                            emitter.Tint = functions[5];
+                            emitter.Alpha = functions[6];
+                            emitter.Radius = functions[7];
+                            emitter.Angle = functions[8];
+
+                            emitters.Add(emitter);
+                        }
+                        particleSystem.Emitters = emitters.ToArray();
+
+                        particleSystems.Add(particleSystem);
+                    }
+                    eventData.ParticleSystems = particleSystems.ToArray();
+
                     eventsList.Add(eventData);
                 }
 
@@ -196,5 +314,26 @@ namespace H2ToH3EffectConverter
                 return cleanedString.ToString();
             }
         }
+
+        static Dictionary<string, int> funcInputMapping = new Dictionary<string, int>
+        {
+            { "0,particle age", 0 },
+            { "1,particle emit time", 10 },
+            { "2,particle random 1", 2 },
+            { "3,particle random 2", 2 },
+            { "4,emitter age", 1 },
+            { "5,emitter random 1", 3 },
+            { "6,emitter random 2", 3 },
+            { "7,system lod", 8 },
+            { "8,game time", 12 },
+            { "9,effect a scale", 13 },
+            { "10,effect b scale", 14 },
+            { "11,particle rotation", 15 },
+            { "12,explosion animation", 18 },
+            { "13,explosion rotation", 19 },
+            { "14,particle random 3", 2 },
+            { "15,particle random 4", 2 },
+            { "16,location random", 16 }
+        };
     }
 }
