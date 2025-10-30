@@ -113,7 +113,7 @@ namespace H2ToH3EffectConverter
                 List<string> effectMarkers = new List<string>();
 
                 // MARKERS
-                Console.WriteLine("Reading markers:");
+                Console.WriteLine("MARKERS:");
                 foreach (XmlNode markerElement in effectFile.SelectNodes("//block[@name='locations']/element"))
                 {
                     XmlNode name = markerElement.SelectSingleNode("./field[@name='marker name']");
@@ -126,7 +126,6 @@ namespace H2ToH3EffectConverter
 
                 }
                 effect.Markers = effectMarkers.ToArray();
-                Console.WriteLine("Finished reading effect markers.\n");
 
                 // EVENTS
                 List<Event> eventsList = new List<Event>();
