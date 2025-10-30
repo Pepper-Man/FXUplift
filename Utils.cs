@@ -81,14 +81,9 @@ namespace H2ToH3EffectConverter
             byte b2 = (byte)data[i + 2];
             byte b3 = (byte)data[i + 3];
 
-            // Step 1: Halo 2 word-swap  (16-bit swap)
-            byte[] bigEndian = { b1, b0, b3, b2 };
-
-            // Step 2: Convert big-endian -> little-endian (host)
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(bigEndian);
-
-            return BitConverter.ToSingle(bigEndian, 0);
+            byte[] swapped = { b1, b0, b3, b2 };
+            Array.Reverse(swapped);
+            return BitConverter.ToSingle(swapped, 0);
         }
 
         public static void PrintObject(object obj, int indents)
