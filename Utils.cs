@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -88,6 +89,61 @@ namespace H2ToH3EffectConverter
                 Array.Reverse(bigEndian);
 
             return BitConverter.ToSingle(bigEndian, 0);
+        }
+
+        public static void PrintObject(object obj, int indents)
+        {
+            string indent = "";
+            if (indents == 1)
+            {
+                indent = "\t";
+            }
+            else if (indents == 2)
+            {
+                indent = "\t\t";
+            }
+
+            Type type = obj.GetType();
+            foreach (var prop in type.GetProperties())
+            {
+                var value = prop.GetValue(obj);
+                if (value == null)
+                {
+                    Console.WriteLine($"{indent}{prop.Name}: <null>");
+                    continue;
+                }
+
+                // Arrays
+                if (value.GetType().IsArray)
+                {
+                    var array = (IEnumerable)value;
+                    var elements = new List<string>();
+                    foreach (var item in array)
+                        elements.Add(item?.ToString() ?? "<null>");
+                    Console.WriteLine($"{indent}{prop.Name}: {string.Join(", ", elements)}");
+                }
+
+                // TagReferenceData
+                else if (value is ReadFromH2.TagReferenceData tagRef)
+                {
+                    Console.WriteLine($"{indent}{prop.Name}: {tagRef.Path}.{tagRef.Extension}");
+                }
+
+                // Halo2Functions
+                else if (value.GetType().GetProperty("FuncType") != null)
+                {
+                    var funcType = value.GetType().GetProperty("FuncType")?.GetValue(value);
+                    var useRange = value.GetType().GetProperty("useRange")?.GetValue(value);
+                    var baseVal = value.GetType().GetProperty("baseVal")?.GetValue(value);
+                    var rangeVal = value.GetType().GetProperty("rangeVal")?.GetValue(value);
+
+                    Console.WriteLine($"{indent}{prop.Name}: FuncType={funcType}, UseRange={useRange}, BaseVal={baseVal}, RangeVal={rangeVal}");
+                }
+                else
+                {
+                    Console.WriteLine($"{indent}{prop.Name}: {value}");
+                }
+            }
         }
     }
 }
