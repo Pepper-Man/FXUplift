@@ -141,7 +141,7 @@ namespace H2ToH3EffectConverter
 
                     // PARTS
                     List<Part> parts = new List<Part>();
-                    foreach (XmlNode partElement in eventElement.SelectNodes("//block[@name='parts']/element"))
+                    foreach (XmlNode partElement in eventElement.SelectNodes(".//block[@name='parts']/element"))
                     {
                         Part part = new Part();
                         Console.WriteLine($"\n\tREADING PART {partElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(partElement)}:");
@@ -168,7 +168,7 @@ namespace H2ToH3EffectConverter
 
                     // PARTICLE SYSTEMS
                     List<ParticleSystem> particleSystems = new List<ParticleSystem>();
-                    foreach (XmlNode particleSysElement in eventElement.SelectNodes("//block[@name='particle systems']/element"))
+                    foreach (XmlNode particleSysElement in eventElement.SelectNodes(".//block[@name='particle systems']/element"))
                     {
                         ParticleSystem particleSystem = new ParticleSystem();
                         Console.WriteLine($"\n\tREADING PARTICLE SYSTEM {particleSysElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(particleSysElement)}:");
