@@ -199,12 +199,26 @@ namespace H2ToH3EffectConverter
                         particleSystem.LodOut = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD out distance']").InnerText.Trim());
                         particleSystem.LodFOutDelta = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD feather out delta']").InnerText.Trim());
 
+                        Console.WriteLine($"\tName: {particleSystem.Name}\n" +
+                            $"\tParticle reference: {particleSystem.ParticleRef.Path}.{particleSystem.ParticleRef.Extension}\n" +
+                            $"\tMarker index: {particleSystem.Location}\n" +
+                            $"\tCoordinate system: {particleSystem.CoordSystem}\n" +
+                            $"\tEnvironment: {particleSystem.Environment}\n" +
+                            $"\tDisposition/Mode: {particleSystem.Mode}\n" +
+                            $"\tCamera mode: {particleSystem.CameraMode}\n" +
+                            $"\tSort bias: {particleSystem.SortBias}\n" +
+                            $"\tFlags: {particleSystem.Flags}\n" +
+                            $"\tLOD in distance: {particleSystem.LodIn}\n" +
+                            $"\tLOD feather in delta: {particleSystem.LodFInDelta}\n" +
+                            $"\tLOD out distance: {particleSystem.LodOut}\n" +
+                            $"\tLOD feather out delta: {particleSystem.LodFOutDelta}");
+
                         // EMITTERS
                         List<Emitter> emitters = new List<Emitter>();
                         foreach (XmlNode emitterElement in particleSysElement.SelectNodes(".//block[@name='emitters']/element"))
                         {
                             Emitter emitter = new Emitter();
-                            Console.WriteLine($"\n\tREADING EMITTER {emitterElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(emitterElement)}:");
+                            Console.WriteLine($"\n\t\tREADING EMITTER {emitterElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(emitterElement)}:");
 
                             if (emitterElement.SelectSingleNode("./tag_reference[@name='particle physics']").InnerText.Trim() != "")
                             {
@@ -256,6 +270,17 @@ namespace H2ToH3EffectConverter
                             emitter.Alpha = functions[6];
                             emitter.Radius = functions[7];
                             emitter.Angle = functions[8];
+
+                            Console.WriteLine($"\t\tPhysics reference: {(emitter.PhysicsRef != null ? $"{emitter.PhysicsRef.Path}.{emitter.PhysicsRef.Extension}" : "<none>")}\n" +
+                                $"\t\tEmissionRate: FuncType={emitter.EmissionRate.FuncType}, UseRange={emitter.EmissionRate.useRange}, BaseVal={emitter.EmissionRate.baseVal}, RangeVal={emitter.EmissionRate.rangeVal}\n" +
+                                $"\t\tLifespan: FuncType={emitter.Lifespan.FuncType}, UseRange={emitter.Lifespan.useRange}, BaseVal={emitter.Lifespan.baseVal}, RangeVal={emitter.Lifespan.rangeVal}\n" +
+                                $"\t\tVelocity: FuncType={emitter.Velocity.FuncType}, UseRange={emitter.Velocity.useRange}, BaseVal={emitter.Velocity.baseVal}, RangeVal={emitter.Velocity.rangeVal}\n" +
+                                $"\t\tAngularVelocity: FuncType={emitter.AngularVelocity.FuncType}, UseRange={emitter.AngularVelocity.useRange}, BaseVal={emitter.AngularVelocity.baseVal}, RangeVal={emitter.AngularVelocity.rangeVal}\n" +
+                                $"\t\tSize: FuncType={emitter.Size.FuncType}, UseRange={emitter.Size.useRange}, BaseVal={emitter.Size.baseVal}, RangeVal={emitter.Size.rangeVal}\n" +
+                                $"\t\tTint: FuncType={emitter.Tint.FuncType}, UseRange={emitter.Tint.useRange}, BaseVal={emitter.Tint.baseVal}, RangeVal={emitter.Tint.rangeVal}\n" +
+                                $"\t\tAlpha: FuncType={emitter.Alpha.FuncType}, UseRange={emitter.Alpha.useRange}, BaseVal={emitter.Alpha.baseVal}, RangeVal={emitter.Alpha.rangeVal}\n" +
+                                $"\t\tRadius: FuncType={emitter.Radius.FuncType}, UseRange={emitter.Radius.useRange}, BaseVal={emitter.Radius.baseVal}, RangeVal={emitter.Radius.rangeVal}\n" +
+                                $"\t\tAngle: FuncType={emitter.Angle.FuncType}, UseRange={emitter.Angle.useRange}, BaseVal={emitter.Angle.baseVal}, RangeVal={emitter.Angle.rangeVal}");
 
                             emitters.Add(emitter);
                         }
