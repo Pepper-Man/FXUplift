@@ -81,9 +81,9 @@ namespace H2ToH3EffectConverter
             byte b2 = (byte)data[i + 2];
             byte b3 = (byte)data[i + 3];
 
-            byte[] swapped = { b1, b0, b3, b2 };
-            Array.Reverse(swapped);
-            return BitConverter.ToSingle(swapped, 0);
+            byte[] swappedOrder = { b1, b0, b3, b2 };
+            Array.Reverse(swappedOrder);
+            return BitConverter.ToSingle(swappedOrder, 0);
         }
 
         public static void PrintObject(object obj, int indents)

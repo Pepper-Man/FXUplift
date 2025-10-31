@@ -32,7 +32,7 @@ namespace H2ToH3EffectConverter
             public int Environment { get; set; }
             public int Mode { get; set; }
             public int Location { get; set; }
-            public int Flags { get; set; }
+            public uint Flags { get; set; }
             public TagReferenceData TagRef { get; set; }
             public float[] VelocityBounds { get; set; }
             public float VelocityConeAngle { get; set; }
@@ -149,7 +149,7 @@ namespace H2ToH3EffectConverter
                         part.Environment = int.Parse(partElement.SelectNodes("./field[@name='create in']")[0].InnerText.Trim().Substring(0, 1));
                         part.Mode = int.Parse(partElement.SelectNodes("./field[@name='create in']")[1].InnerText.Trim().Substring(0, 1));
                         part.Location = int.Parse(partElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
-                        part.Flags = int.Parse(partElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim());
+                        part.Flags = uint.Parse(partElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim());
                         part.TagRef = new TagReferenceData
                         {
                             Path = partElement.SelectSingleNode("./tag_reference[@name='type']").InnerText.Trim(),
