@@ -38,6 +38,8 @@ namespace H2ToH3EffectConverter
             public float VelocityConeAngle { get; set; }
             public float[] AngularVelocityBounds { get; set; }
             public float[] RadiusModifierBounds { get; set; }
+            public uint AScalesVals { get; set; }
+            public uint BScalesVals { get; set; }
         }
 
         public class ParticleSystem
@@ -159,6 +161,8 @@ namespace H2ToH3EffectConverter
                         part.VelocityConeAngle = float.Parse(partElement.SelectSingleNode("./field[@name='velocity cone angle']").InnerText.Trim());
                         part.AngularVelocityBounds = partElement.SelectSingleNode("./field[@name='angular velocity bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
                         part.RadiusModifierBounds = partElement.SelectSingleNode("./field[@name='radius modifier bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
+                        part.AScalesVals = uint.Parse(partElement.SelectSingleNode("./field[@name='A scales values']").InnerText.Trim());
+                        part.BScalesVals = uint.Parse(partElement.SelectSingleNode("./field[@name='B scales values']").InnerText.Trim());
 
                         Utils.PrintObject(part, 1);
 
