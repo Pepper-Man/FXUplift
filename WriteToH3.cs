@@ -122,6 +122,26 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:emission axis angle/Custom:Mapping")).Value.ClampRangeMin = 0;
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:emission axis angle/Custom:Mapping")).Value.ClampRangeMax = 0;
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:emission axis angle/Custom:Mapping")).Value.IsRanged = false;
+
+                        // Emission Rate
+                        Halo2Function emissionRate = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].EmissionRate;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle emission rate/CharEnum:Input Variable")).Value = emissionRate.InputVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle emission rate/CharEnum:Range Variable")).Value = emissionRate.RangeVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle emission rate/CharEnum:Output Modifier")).Value = emissionRate.OutputMod;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle emission rate/CharEnum:Output Modifier Input")).Value = emissionRate.OutputModInput;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle emission rate/Custom:Mapping")).Value.ClampRangeMin = emissionRate.baseVal * 30; // particles per tick -> particles per second
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle emission rate/Custom:Mapping")).Value.ClampRangeMax = emissionRate.rangeVal * 30; // particles per tick -> particles per second
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle emission rate/Custom:Mapping")).Value.IsRanged = emissionRate.useRange;
+
+                        // Particle Lifespan
+                        Halo2Function lifespan = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].Lifespan;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle lifespan/CharEnum:Input Variable")).Value = lifespan.InputVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle lifespan/CharEnum:Range Variable")).Value = lifespan.RangeVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle lifespan/CharEnum:Output Modifier")).Value = lifespan.OutputMod;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle lifespan/CharEnum:Output Modifier Input")).Value = lifespan.OutputModInput;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle lifespan/Custom:Mapping")).Value.ClampRangeMin = lifespan.baseVal;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle lifespan/Custom:Mapping")).Value.ClampRangeMax = lifespan.rangeVal;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle lifespan/Custom:Mapping")).Value.IsRanged = lifespan.useRange;
                     }
                 }
             }
