@@ -44,7 +44,6 @@ namespace H2ToH3EffectConverter
 
         public class ParticleSystem
         {
-            public string Name { get; set; }
             public TagReferenceData ParticleRef { get; set; }
             public int Location { get; set; }
             public int CoordSystem { get; set; }
@@ -52,7 +51,7 @@ namespace H2ToH3EffectConverter
             public int Mode { get; set; }
             public int CameraMode { get; set; }
             public int SortBias { get; set; }
-            public int Flags { get; set; }
+            public uint Flags { get; set; }
             public float LodIn { get; set; }
             public float LodFInDelta { get; set; }
             public float LodOut { get; set; }
@@ -177,7 +176,6 @@ namespace H2ToH3EffectConverter
                         ParticleSystem particleSystem = new ParticleSystem();
                         Console.WriteLine($"\n\tREADING PARTICLE SYSTEM {particleSysElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(particleSysElement)}:");
 
-                        particleSystem.Name = particleSysElement.Attributes["name"].Value;
                         particleSystem.ParticleRef = new TagReferenceData
                         {
                             Path = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").InnerText.Trim(),
@@ -189,7 +187,7 @@ namespace H2ToH3EffectConverter
                         particleSystem.Mode = int.Parse(particleSysElement.SelectNodes("./field[@name='disposition']")[0].InnerText.Trim().Substring(0, 1));
                         particleSystem.CameraMode = int.Parse(particleSysElement.SelectNodes("./field[@name='camera mode']")[0].InnerText.Trim().Substring(0, 1));
                         particleSystem.SortBias = int.Parse(particleSysElement.SelectNodes("./field[@name='sort bias']")[0].InnerText.Trim().Substring(0, 1));
-                        particleSystem.Flags = int.Parse(particleSysElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim());
+                        particleSystem.Flags = uint.Parse(particleSysElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim());
                         particleSystem.LodIn = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD in distance']").InnerText.Trim());
                         particleSystem.LodFInDelta = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD feather in delta']").InnerText.Trim());
                         particleSystem.LodOut = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD out distance']").InnerText.Trim());
@@ -255,6 +253,7 @@ namespace H2ToH3EffectConverter
                             emitter.Radius = functions[7];
                             emitter.Angle = functions[8];
 
+                            emitter.EmissionShape = int.Parse(emitterElement.SelectSingleNode("./field[@name='emission shape']")?.InnerText.Trim().Substring(0, 1));
                             emitter.TransOffset = emitterElement.SelectSingleNode("./field[@name='translational offset']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
                             emitter.RelativeDir = emitterElement.SelectSingleNode("./field[@name='relative direction']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
 
