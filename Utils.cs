@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace H2ToH3EffectConverter
@@ -18,7 +21,7 @@ namespace H2ToH3EffectConverter
                 // Clean invalid characters
                 string cleanedXML = RemoveInvalidXmlCharacters(xmlContent);
 
-                Console.WriteLine("XML file cleaned successfully.", false);
+                Console.WriteLine("XML file cleaned successfully.\n", false);
 
                 return cleanedXML;
             }
@@ -139,6 +142,79 @@ namespace H2ToH3EffectConverter
                     Console.WriteLine($"{indent}{prop.Name}: {value}");
                 }
             }
+        }
+    
+        public static string ExtractTagXML(string h2TagPath)
+        {
+            string h2ek = h2TagPath.Substring(0, h2TagPath.IndexOf("H2EK") + 4);
+            string toolExePath = Path.Combine(h2ek, "tool.exe");
+            
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string xmlDir = Path.Combine(baseDir, "xml");
+            Directory.CreateDirectory(xmlDir);
+
+            string tagName = Path.GetFileNameWithoutExtension(h2TagPath);
+            string xmlOutPath = Path.Combine(xmlDir, $"{tagName}.xml");
+
+            // Build arguments
+            string[] argumentsArray = new string[]
+            { 
+                "export-tag-to-xml",
+                h2TagPath,
+                xmlOutPath
+            };
+
+            string arguments = string.Join(" ", argumentsArray);
+
+            ProcessStartInfo processStartInfo = new ProcessStartInfo
+            {
+                FileName = toolExePath,
+                Arguments = arguments,
+                WorkingDirectory = h2ek,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            Process process = new Process
+            {
+                StartInfo = processStartInfo
+            };
+
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    Console.WriteLine(e.Data);
+                }
+            };
+
+            process.ErrorDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    Console.WriteLine(e.Data);
+                }
+            };
+
+            // Start process
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            try
+            {
+                process.WaitForExit();
+            }
+            catch (AggregateException ae)
+            {
+                throw ae.InnerException ?? ae;
+            }
+
+            process.Close();
+
+            return xmlOutPath;
         }
     }
 }
