@@ -83,6 +83,8 @@ namespace H2ToH3EffectConverter
             public Halo2Function Gravity { get; set; }
             public Halo2Function AirFriction { get; set; }
             public Halo2Function RotFriction { get; set; }
+            public Halo2Function CollFriction { get; set; }
+            public Halo2Function CollElasticity { get; set; }
         }
 
         public class Halo2Function
@@ -268,6 +270,12 @@ namespace H2ToH3EffectConverter
                                     pPhysics.Gravity = movementFunctions[0];
                                     pPhysics.AirFriction = movementFunctions[1];
                                     pPhysics.RotFriction = movementFunctions[2];
+
+                                    if (movementFunctions.Count >= 5)
+                                    {
+                                        pPhysics.CollFriction = movementFunctions[3];
+                                        pPhysics.CollElasticity = movementFunctions[4];
+                                    }
                                 }
 
                                 emitter.ParticlePhys = pPhysics;

@@ -9,6 +9,7 @@ namespace H2ToH3EffectConverter
     using Emitter = ReadFromH2.Emitter;
     using Halo2Function = ReadFromH2.Halo2Function;
     using Effect = ReadFromH2.Effect;
+    using ParticlePhysics = ReadFromH2.ParticlePhysics;
 
     internal class WriteToH3
     {
@@ -142,6 +143,88 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle lifespan/Custom:Mapping")).Value.ClampRangeMin = lifespan.baseVal;
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle lifespan/Custom:Mapping")).Value.ClampRangeMax = lifespan.rangeVal;
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle lifespan/Custom:Mapping")).Value.IsRanged = lifespan.useRange;
+
+                        // Particle Physics
+                        ParticlePhysics pPhysics = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].ParticlePhys;
+
+                        if (pPhysics != null)
+                        {
+                            Halo2Function pPhysGrav = pPhysics.Gravity;
+                            Halo2Function pPhysAirFric = pPhysics.AirFriction;
+                            Halo2Function pPhysRotFric = pPhysics.RotFriction;
+                            Halo2Function pPhysCollFric = pPhysics.CollFriction;
+                            Halo2Function pPhysCollElas = pPhysics.CollElasticity;
+                            TagPath defaultPhysics = TagPath.FromPathAndExtension("fx\\physics_templates\\_default", "particle_physics");
+
+                            ((TagFieldReference)tagFile.SelectField($"{emitter}/Struct:particle movement/Reference:template")).Path = defaultPhysics;
+                            ((TagFieldFlags)tagFile.SelectField($"{emitter}/Struct:particle movement/Flags:flags")).RawValue = pPhysics.Flags;
+
+                            // Gravity
+                            ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements")).AddElement();
+                            ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters")).AddElement();
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/CharEnum:Input Variable")).Value = pPhysGrav.InputVar;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/CharEnum:Range Variable")).Value = pPhysGrav.RangeVar;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/CharEnum:Output Modifier")).Value = pPhysGrav.OutputMod;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/CharEnum:Output Modifier Input")).Value = pPhysGrav.OutputModInput;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysGrav.baseVal;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysGrav.rangeVal;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysGrav.useRange;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+
+                            // Air Friction
+                            ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters")).AddElement();
+                            ((TagFieldElementInteger)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/LongInteger:parameter id")).Data = 1;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/CharEnum:Input Variable")).Value = pPhysAirFric.InputVar;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/CharEnum:Range Variable")).Value = pPhysAirFric.RangeVar;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/CharEnum:Output Modifier")).Value = pPhysAirFric.OutputMod;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/CharEnum:Output Modifier Input")).Value = pPhysAirFric.OutputModInput;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysAirFric.baseVal;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysAirFric.rangeVal;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysAirFric.useRange;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+
+                            // Rotational Friction
+                            ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters")).AddElement();
+                            ((TagFieldElementInteger)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/LongInteger:parameter id")).Data = 2;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/CharEnum:Input Variable")).Value = pPhysRotFric.InputVar;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/CharEnum:Range Variable")).Value = pPhysRotFric.RangeVar;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/CharEnum:Output Modifier")).Value = pPhysRotFric.OutputMod;
+                            ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/CharEnum:Output Modifier Input")).Value = pPhysRotFric.OutputModInput;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysRotFric.baseVal;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysRotFric.rangeVal;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysRotFric.useRange;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+
+                            if (pPhysCollFric != null)
+                            {
+                                // Collision Friction
+                                ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements")).AddElement();
+                                ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/ShortEnum:type")).Value = 1;
+                                ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters")).AddElement();
+                                ((TagFieldElementInteger)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/LongInteger:parameter id")).Data = 0;
+                                ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/CharEnum:Input Variable")).Value = pPhysCollFric.InputVar;
+                                ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/CharEnum:Range Variable")).Value = pPhysCollFric.RangeVar;
+                                ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/CharEnum:Output Modifier")).Value = pPhysCollFric.OutputMod;
+                                ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/CharEnum:Output Modifier Input")).Value = pPhysCollFric.OutputModInput;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysCollFric.baseVal;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysCollFric.rangeVal;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysCollFric.useRange;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+
+                                // Collision Elasticity
+                                ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters")).AddElement();
+                                ((TagFieldElementInteger)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/LongInteger:parameter id")).Data = 1;
+                                ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/CharEnum:Input Variable")).Value = pPhysCollElas.InputVar;
+                                ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/CharEnum:Range Variable")).Value = pPhysCollElas.RangeVar;
+                                ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/CharEnum:Output Modifier")).Value = pPhysCollElas.OutputMod;
+                                ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/CharEnum:Output Modifier Input")).Value = pPhysCollElas.OutputModInput;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysCollElas.baseVal;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysCollElas.rangeVal;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysCollElas.useRange;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+                            }
+                            
+                        }
                     }
                 }
             }
