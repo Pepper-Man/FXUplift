@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bungie.Tags;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -143,14 +144,24 @@ namespace H2ToH3EffectConverter
                 }
             }
         }
-    
-        public static string ExtractTagXML(string h2TagPath)
+
+        public static string ExtractTagXML(string h2TagPath, string type)
         {
             string h2ek = h2TagPath.Substring(0, h2TagPath.IndexOf("H2EK") + 4);
             string toolExePath = Path.Combine(h2ek, "tool.exe");
-            
+            string subFolder = "";
+
+            if (type == "effect")
+            {
+                subFolder = "xml\\effects";
+            }
+            else if (type == "particle physics")
+            {
+                subFolder = "xml\\particle_phys";
+            }
+
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string xmlDir = Path.Combine(baseDir, "xml");
+            string xmlDir = Path.Combine(baseDir, subFolder);
             Directory.CreateDirectory(xmlDir);
 
             string tagName = Path.GetFileNameWithoutExtension(h2TagPath);
@@ -158,7 +169,7 @@ namespace H2ToH3EffectConverter
 
             // Build arguments
             string[] argumentsArray = new string[]
-            { 
+            {
                 "export-tag-to-xml",
                 h2TagPath,
                 xmlOutPath
@@ -166,7 +177,7 @@ namespace H2ToH3EffectConverter
 
             string arguments = string.Join(" ", argumentsArray);
 
-            ProcessStartInfo processStartInfo = new ProcessStartInfo
+            ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = toolExePath,
                 Arguments = arguments,
@@ -177,42 +188,25 @@ namespace H2ToH3EffectConverter
                 CreateNoWindow = true
             };
 
-            Process process = new Process
+            using (Process process = new Process { StartInfo = psi })
             {
-                StartInfo = processStartInfo
-            };
-
-            process.OutputDataReceived += (sender, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data))
+                process.OutputDataReceived += (sender, e) =>
                 {
-                    Console.WriteLine(e.Data);
-                }
-            };
+                    if (!string.IsNullOrEmpty(e.Data))
+                        Console.WriteLine(e.Data);
+                };
 
-            process.ErrorDataReceived += (sender, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data))
+                process.ErrorDataReceived += (sender, e) =>
                 {
-                    Console.WriteLine(e.Data);
-                }
-            };
+                    if (!string.IsNullOrEmpty(e.Data))
+                        Console.WriteLine(e.Data);
+                };
 
-            // Start process
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            try
-            {
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
                 process.WaitForExit();
             }
-            catch (AggregateException ae)
-            {
-                throw ae.InnerException ?? ae;
-            }
-
-            process.Close();
 
             return xmlOutPath;
         }
