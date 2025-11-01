@@ -6,8 +6,9 @@
         {
             // TEMPORARY HARDCODING
             string h2EffectPath = "G:\\Steam\\steamapps\\common\\H2EK\\tags\\effects\\scenarios\\solo\\alphagasgiant\\cables\\cables_cut_major.effect";
-            string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect");
-            ReadFromH2.Effect effect = ReadFromH2.GetDataFromXML(h2XmlPath);
+            string h2ek = Utils.GetH2EKPath(h2EffectPath);
+            string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
+            ReadFromH2.Effect effect = ReadFromH2.GetDataFromXML(h2XmlPath, h2ek);
             WriteToH3.WriteH3Effect("C:\\Program Files (x86)\\Steam\\steamapps\\common\\H3EK", "halo_2\\effe_test\\cables_cut_major", effect);
         }
     }

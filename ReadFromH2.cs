@@ -95,7 +95,7 @@ namespace H2ToH3EffectConverter
             public string Extension { get; set; }
         }
 
-        public static Effect GetDataFromXML(string xmlPath)
+        public static Effect GetDataFromXML(string xmlPath, string h2ekPath)
         {
             Effect effect = new Effect();
 
@@ -181,6 +181,7 @@ namespace H2ToH3EffectConverter
                             Path = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").InnerText.Trim(),
                             Extension = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").Attributes["type"].Value
                         };
+
                         particleSystem.Location = int.Parse(particleSysElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
                         particleSystem.CoordSystem = int.Parse(particleSysElement.SelectNodes("./field[@name='coordinate system']")[0].InnerText.Trim().Substring(0, 1));
                         particleSystem.Environment = int.Parse(particleSysElement.SelectNodes("./field[@name='environment']")[0].InnerText.Trim().Substring(0, 1));
@@ -209,6 +210,9 @@ namespace H2ToH3EffectConverter
                                     Path = emitterElement.SelectSingleNode("./tag_reference[@name='particle physics']").InnerText.Trim(),
                                     Extension = emitterElement.SelectSingleNode("./tag_reference[@name='particle physics']").Attributes["type"].Value
                                 };
+
+                                string physicsRefFullPath = Path.ChangeExtension(Path.Combine(h2ekPath, "tags", emitter.PhysicsRef.Path), "particle_physics");
+                                string particlePhysXml = Utils.ExtractTagXML(physicsRefFullPath, "particle physics", h2ekPath);
                             }
 
                             XmlNodeList functionFieldGroups = emitterElement.SelectNodes("./field[@name='Input Variable']");

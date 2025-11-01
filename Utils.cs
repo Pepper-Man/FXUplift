@@ -145,9 +145,8 @@ namespace H2ToH3EffectConverter
             }
         }
 
-        public static string ExtractTagXML(string h2TagPath, string type)
+        public static string ExtractTagXML(string h2TagPath, string type, string h2ek)
         {
-            string h2ek = h2TagPath.Substring(0, h2TagPath.IndexOf("H2EK") + 4);
             string toolExePath = Path.Combine(h2ek, "tool.exe");
             string subFolder = "";
 
@@ -209,6 +208,11 @@ namespace H2ToH3EffectConverter
             }
 
             return xmlOutPath;
+        }
+
+        public static string GetH2EKPath(string fullEffectPath)
+        {
+            return fullEffectPath.Substring(0, fullEffectPath.IndexOf("H2EK") + 4);
         }
     }
 }
