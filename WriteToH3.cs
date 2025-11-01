@@ -263,6 +263,9 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle size/Custom:Mapping")).Value.ClampRangeMax = particleSize.rangeVal;
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle size/Custom:Mapping")).Value.IsRanged = particleSize.useRange;
 
+                        // Particle Tint
+                        Halo2Function particleTint = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].Tint;
+
                         // Particle Alpha
                         Halo2Function particleAlpha = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].Alpha;
                         ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle alpha/CharEnum:Input Variable")).Value = particleAlpha.InputVar;
