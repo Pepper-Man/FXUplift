@@ -319,31 +319,38 @@ namespace H2ToH3EffectConverter
                                 // Convert raw data to UNsigned bytes
                                 // Colour RGB data is in reverse order cos endianness, hence backwards array indices
                                 byte[] unsigned = func.RawData.Select(i => (byte)i).ToArray();
+
+                                // H2 stores RGB 0-255 but GameColor.FromRgb() expects linear 0-1 values
+                                float[] colour1Linear = Utils.ByteRgbToLinearNormalized(unsigned[6], unsigned[5], unsigned[4]);
+                                float[] colour2Linear = Utils.ByteRgbToLinearNormalized(unsigned[18], unsigned[17], unsigned[16]);
+                                float[] colour3Linear = Utils.ByteRgbToLinearNormalized(unsigned[10], unsigned[9], unsigned[8]);
+                                float[] colour4Linear = Utils.ByteRgbToLinearNormalized(unsigned[14], unsigned[13], unsigned[12]);
+
                                 if (func.RawData[1] >= 32) // Check for colour-type function
                                 {
                                     if (func.RawData[1] == 32 || func.RawData[1] == 33)
                                     {
                                         // 2-Colour
                                         func.ColourType = 2;
-                                        func.Colour1 = GameColor.FromRgb(unsigned[18], unsigned[17], unsigned[16]);
-                                        func.Colour2 = GameColor.FromRgb(unsigned[6], unsigned[5], unsigned[4]);
+                                        func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
+                                        func.Colour2 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
                                     }
                                     else if (func.RawData[1] == 48 || func.RawData[1] == 49)
                                     {
                                         // 3-Colour
                                         func.ColourType = 3;
-                                        func.Colour1 = GameColor.FromRgb(unsigned[18], unsigned[17], unsigned[16]);
-                                        func.Colour2 = GameColor.FromRgb(unsigned[6], unsigned[5], unsigned[4]);
-                                        func.Colour3 = GameColor.FromRgb(unsigned[10], unsigned[9], unsigned[8]);
+                                        func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
+                                        func.Colour2 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
+                                        func.Colour3 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
                                     }
                                     else if (func.RawData[1] == 64 || func.RawData[1] == 65)
                                     {
                                         // 4-Colour
                                         func.ColourType = 4;
-                                        func.Colour1 = GameColor.FromRgb(unsigned[18], unsigned[17], unsigned[16]);
-                                        func.Colour2 = GameColor.FromRgb(unsigned[6], unsigned[5], unsigned[4]);
-                                        func.Colour3 = GameColor.FromRgb(unsigned[10], unsigned[9], unsigned[8]);
-                                        func.Colour4 = GameColor.FromRgb(unsigned[14], unsigned[13], unsigned[12]);
+                                        func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
+                                        func.Colour2 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
+                                        func.Colour3 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
+                                        func.Colour4 = GameColor.FromRgb(colour4Linear[0], colour4Linear[1], colour4Linear[2]);
                                     }
                                 }
                                 
