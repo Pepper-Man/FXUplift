@@ -269,9 +269,8 @@ namespace H2ToH3EffectConverter
                         ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle tint/CharEnum:Range Variable")).Value = particleTint.RangeVar;
                         ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle tint/CharEnum:Output Modifier")).Value = particleTint.OutputMod;
                         ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle tint/CharEnum:Output Modifier Input")).Value = particleTint.OutputModInput;
-
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.IsRanged = particleTint.useRange;
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(0, particleTint.Colour1);
-
                         if (particleTint.ColourType == 2)
                         {
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.TwoColor;
