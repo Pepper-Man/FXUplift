@@ -280,11 +280,14 @@ namespace H2ToH3EffectConverter
                         else if (particleTint.ColourType == 3)
                         {
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.ThreeColor;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(1, particleTint.Colour2);
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(2, particleTint.Colour3);
                         }
                         else if (particleTint.ColourType == 4)
                         {
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.FourColor;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(1, particleTint.Colour2);
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(2, particleTint.Colour3);
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(3, particleTint.Colour4);
                         }
 

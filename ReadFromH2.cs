@@ -339,18 +339,22 @@ namespace H2ToH3EffectConverter
                                     {
                                         // 3-Colour
                                         func.ColourType = 3;
+                                        // For some godforsaken reason the colour order changes the more colours there are
+                                        // Figured out through trial and error which order to use
                                         func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
-                                        func.Colour2 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
-                                        func.Colour3 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
+                                        func.Colour3 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
+                                        func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
                                     }
                                     else if (func.RawData[1] == 64 || func.RawData[1] == 65)
                                     {
                                         // 4-Colour
+                                        // For some godforsaken reason the colour order changes the more colours there are
+                                        // Figured out through trial and error which order to use
                                         func.ColourType = 4;
                                         func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
-                                        func.Colour2 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
-                                        func.Colour3 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
-                                        func.Colour4 = GameColor.FromRgb(colour4Linear[0], colour4Linear[1], colour4Linear[2]);
+                                        func.Colour4 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
+                                        func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
+                                        func.Colour3 = GameColor.FromRgb(colour4Linear[0], colour4Linear[1], colour4Linear[2]);
                                     }
                                 }
                                 
