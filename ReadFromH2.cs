@@ -326,16 +326,27 @@ namespace H2ToH3EffectConverter
                                 float[] colour3Linear = Utils.ByteRgbToLinearNormalized(unsigned[10], unsigned[9], unsigned[8]);
                                 float[] colour4Linear = Utils.ByteRgbToLinearNormalized(unsigned[14], unsigned[13], unsigned[12]);
 
-                                if (func.RawData[1] >= 32) // Check for colour-type function
+                                int funcType = func.RawData[1];
+
+                                if (funcType >= 32) // Check for colour-type function
                                 {
-                                    if (func.RawData[1] == 32 || func.RawData[1] == 33)
+                                    if (funcType == 32 || funcType == 33)
                                     {
                                         // 2-Colour
                                         func.ColourType = 2;
                                         func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
                                         func.Colour2 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
+
+                                        if (funcType == 33)
+                                        {
+                                            func.useRange = true;
+                                        }
+                                        else
+                                        {
+                                            func.useRange = false;
+                                        }
                                     }
-                                    else if (func.RawData[1] == 48 || func.RawData[1] == 49)
+                                    else if (funcType == 48 || funcType == 49)
                                     {
                                         // 3-Colour
                                         func.ColourType = 3;
@@ -344,8 +355,17 @@ namespace H2ToH3EffectConverter
                                         func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
                                         func.Colour3 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
                                         func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
+
+                                        if (funcType == 49)
+                                        {
+                                            func.useRange = true;
+                                        }
+                                        else
+                                        {
+                                            func.useRange = false;
+                                        }
                                     }
-                                    else if (func.RawData[1] == 64 || func.RawData[1] == 65)
+                                    else if (funcType == 64 || funcType == 65)
                                     {
                                         // 4-Colour
                                         // For some godforsaken reason the colour order changes the more colours there are
@@ -355,6 +375,15 @@ namespace H2ToH3EffectConverter
                                         func.Colour4 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
                                         func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
                                         func.Colour3 = GameColor.FromRgb(colour4Linear[0], colour4Linear[1], colour4Linear[2]);
+
+                                        if (funcType == 65)
+                                        {
+                                            func.useRange = true;
+                                        }
+                                        else
+                                        {
+                                            func.useRange = false;
+                                        }
                                     }
                                 }
                                 
