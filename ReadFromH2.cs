@@ -315,30 +315,33 @@ namespace H2ToH3EffectConverter
                                 // Second int is use range, 0=off 1=on
                                 func.useRange = func.RawData[1] != 0;
 
-                                // Function might hold colour rather than float values, let's grab those too
+                                // Function might hold colour rather than float values
                                 // Convert raw data to UNsigned bytes
-                                // Colour data is in reverse order
+                                // Colour RGB data is in reverse order cos endianness, hence backwards array indices
                                 byte[] unsigned = func.RawData.Select(i => (byte)i).ToArray();
                                 if (func.RawData[1] >= 32) // Check for colour-type function
                                 {
                                     if (func.RawData[1] == 32 || func.RawData[1] == 33)
                                     {
                                         // 2-Colour
-                                        func.Colour1 = GameColor.FromRgb(unsigned[6], unsigned[5], unsigned[4]);
-                                        func.Colour2 = GameColor.FromRgb(unsigned[18], unsigned[17], unsigned[16]);
+                                        func.ColourType = 2;
+                                        func.Colour1 = GameColor.FromRgb(unsigned[18], unsigned[17], unsigned[16]);
+                                        func.Colour2 = GameColor.FromRgb(unsigned[6], unsigned[5], unsigned[4]);
                                     }
                                     else if (func.RawData[1] == 48 || func.RawData[1] == 49)
                                     {
                                         // 3-Colour
-                                        func.Colour1 = GameColor.FromRgb(unsigned[6], unsigned[5], unsigned[4]);
-                                        func.Colour2 = GameColor.FromRgb(unsigned[18], unsigned[17], unsigned[16]);
+                                        func.ColourType = 3;
+                                        func.Colour1 = GameColor.FromRgb(unsigned[18], unsigned[17], unsigned[16]);
+                                        func.Colour2 = GameColor.FromRgb(unsigned[6], unsigned[5], unsigned[4]);
                                         func.Colour3 = GameColor.FromRgb(unsigned[10], unsigned[9], unsigned[8]);
                                     }
                                     else if (func.RawData[1] == 64 || func.RawData[1] == 65)
                                     {
                                         // 4-Colour
-                                        func.Colour1 = GameColor.FromRgb(unsigned[6], unsigned[5], unsigned[4]);
-                                        func.Colour2 = GameColor.FromRgb(unsigned[18], unsigned[17], unsigned[16]);
+                                        func.ColourType = 4;
+                                        func.Colour1 = GameColor.FromRgb(unsigned[18], unsigned[17], unsigned[16]);
+                                        func.Colour2 = GameColor.FromRgb(unsigned[6], unsigned[5], unsigned[4]);
                                         func.Colour3 = GameColor.FromRgb(unsigned[10], unsigned[9], unsigned[8]);
                                         func.Colour4 = GameColor.FromRgb(unsigned[14], unsigned[13], unsigned[12]);
                                     }

@@ -265,6 +265,29 @@ namespace H2ToH3EffectConverter
 
                         // Particle Tint
                         Halo2Function particleTint = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].Tint;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle tint/CharEnum:Input Variable")).Value = particleTint.InputVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle tint/CharEnum:Range Variable")).Value = particleTint.RangeVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle tint/CharEnum:Output Modifier")).Value = particleTint.OutputMod;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle tint/CharEnum:Output Modifier Input")).Value = particleTint.OutputModInput;
+
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(0, particleTint.Colour1);
+
+                        if (particleTint.ColourType == 2)
+                        {
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.TwoColor;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(1, particleTint.Colour2);
+                        }
+                        else if (particleTint.ColourType == 3)
+                        {
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.ThreeColor;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(2, particleTint.Colour3);
+                        }
+                        else if (particleTint.ColourType == 4)
+                        {
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.FourColor;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(3, particleTint.Colour4);
+                        }
+
 
                         // Particle Alpha
                         Halo2Function particleAlpha = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].Alpha;
