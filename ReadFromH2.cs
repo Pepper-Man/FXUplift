@@ -96,9 +96,9 @@ namespace H2ToH3EffectConverter
             public int OutputModInput { get; set; }
             public int[] RawData { get; set; }
             public int FuncType { get; set; }
-            public bool useRange { get; set; }
-            public float baseVal { get; set; }
-            public float rangeVal { get; set; }
+            public bool UseRange { get; set; }
+            public float BaseVal { get; set; }
+            public float RangeVal { get; set; }
             public int ColourType { get; set; }
             public GameColor Colour1 { get; set; }
             public GameColor Colour2 { get; set; }
@@ -261,14 +261,14 @@ namespace H2ToH3EffectConverter
                                         // Convert raw data to signed bytes
                                         sbyte[] signed = func.RawData.Select(i => (sbyte)i).ToArray();
                                         // Then read some values
-                                        func.baseVal = Utils.ReadHalo2PackedFloat(signed, 6);
-                                        func.rangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
+                                        func.BaseVal = Utils.ReadHalo2PackedFloat(signed, 6);
+                                        func.RangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
 
                                         // First integer is function type index
                                         func.FuncType = func.RawData[0];
 
                                         // Second int is use range, 0=off 1=on
-                                        func.useRange = func.RawData[1] != 0;
+                                        func.UseRange = func.RawData[1] != 0;
 
                                         movementFunctions.Add(func);
                                     }
@@ -306,14 +306,14 @@ namespace H2ToH3EffectConverter
                                 // Convert raw data to signed bytes
                                 sbyte[] signed = func.RawData.Select(i => (sbyte)i).ToArray();
                                 // Then read some values
-                                func.baseVal = Utils.ReadHalo2PackedFloat(signed, 6);
-                                func.rangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
+                                func.BaseVal = Utils.ReadHalo2PackedFloat(signed, 6);
+                                func.RangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
 
                                 // First integer is function type index
                                 func.FuncType = func.RawData[0];
 
                                 // Second int is use range, 0=off 1=on
-                                func.useRange = func.RawData[1] != 0;
+                                func.UseRange = func.RawData[1] != 0;
 
                                 // Function might hold colour rather than float values
                                 // Convert raw data to UNsigned bytes
@@ -339,11 +339,11 @@ namespace H2ToH3EffectConverter
 
                                         if (funcType == 33)
                                         {
-                                            func.useRange = true;
+                                            func.UseRange = true;
                                         }
                                         else
                                         {
-                                            func.useRange = false;
+                                            func.UseRange = false;
                                         }
                                     }
                                     else if (funcType == 48 || funcType == 49)
@@ -358,11 +358,11 @@ namespace H2ToH3EffectConverter
 
                                         if (funcType == 49)
                                         {
-                                            func.useRange = true;
+                                            func.UseRange = true;
                                         }
                                         else
                                         {
-                                            func.useRange = false;
+                                            func.UseRange = false;
                                         }
                                     }
                                     else if (funcType == 64 || funcType == 65)
@@ -378,11 +378,11 @@ namespace H2ToH3EffectConverter
 
                                         if (funcType == 65)
                                         {
-                                            func.useRange = true;
+                                            func.UseRange = true;
                                         }
                                         else
                                         {
-                                            func.useRange = false;
+                                            func.UseRange = false;
                                         }
                                     }
                                 }

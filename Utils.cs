@@ -1,4 +1,6 @@
-﻿using Bungie.Tags;
+﻿using Bungie;
+using Bungie.Game;
+using Bungie.Tags;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -21,8 +23,6 @@ namespace H2ToH3EffectConverter
 
                 // Clean invalid characters
                 string cleanedXML = RemoveInvalidXmlCharacters(xmlContent);
-
-                Console.WriteLine("XML file cleaned successfully.\n", false);
 
                 return cleanedXML;
             }
@@ -132,11 +132,29 @@ namespace H2ToH3EffectConverter
                 else if (value.GetType().GetProperty("FuncType") != null)
                 {
                     var funcType = value.GetType().GetProperty("FuncType")?.GetValue(value);
-                    var useRange = value.GetType().GetProperty("useRange")?.GetValue(value);
-                    var baseVal = value.GetType().GetProperty("baseVal")?.GetValue(value);
-                    var rangeVal = value.GetType().GetProperty("rangeVal")?.GetValue(value);
+                    var useRange = value.GetType().GetProperty("UseRange")?.GetValue(value);
+                    var baseVal = value.GetType().GetProperty("BaseVal")?.GetValue(value);
+                    var rangeVal = value.GetType().GetProperty("RangeVal")?.GetValue(value);
+                    var colour1 = value.GetType().GetProperty("Colour1")?.GetValue(value);
+                    var colour2 = value.GetType().GetProperty("Colour2")?.GetValue(value);
+                    var colour3 = value.GetType().GetProperty("Colour3")?.GetValue(value);
+                    var colour4 = value.GetType().GetProperty("Colour4")?.GetValue(value);
 
-                    Console.WriteLine($"{indent}{prop.Name}: FuncType={funcType}, UseRange={useRange}, BaseVal={baseVal}, RangeVal={rangeVal}");
+                    if (prop.Name != "Tint")
+                    {
+                        Console.WriteLine($"{indent}{prop.Name}: FuncType={Utils.funcTypeMapping[(int)funcType]}, UseRange={useRange}, BaseVal={baseVal}, RangeVal={rangeVal}");
+                    }
+                    else
+                    {
+                        string toColourString(object c) => c is GameColor g ? $"{g.Red},{g.Green},{g.Blue}" : "null";
+
+                        string colour1String = toColourString(colour1);
+                        string colour2String = toColourString(colour2);
+                        string colour3String = toColourString(colour3);
+                        string colour4String = toColourString(colour4);
+
+                        Console.WriteLine($"{indent}{prop.Name}: FuncType={Utils.funcTypeMapping[(int)funcType]}, UseRange={useRange}, Colour1={colour1String}, Colour2={colour2String}, Colour3={colour3String}, Colour4={colour4String}");
+                    }
                 }
                 else
                 {
@@ -230,5 +248,20 @@ namespace H2ToH3EffectConverter
         {
             return new float[] { SrgbToLinearF(Norm(r)), SrgbToLinearF(Norm(g)), SrgbToLinearF(Norm(b))};
         }
+
+        public static Dictionary<int, FunctionEditorMasterType> funcTypeMapping = new Dictionary<int, FunctionEditorMasterType>
+        {
+            { 0, FunctionEditorMasterType.Transition },
+            { 1, FunctionEditorMasterType.Basic },
+            { 2, FunctionEditorMasterType.Transition },
+            { 3, FunctionEditorMasterType.Periodic },
+            { 4, FunctionEditorMasterType.Curve },
+            { 5, FunctionEditorMasterType.Curve },
+            { 6, FunctionEditorMasterType.Curve },
+            { 7, FunctionEditorMasterType.Curve },
+            { 8, FunctionEditorMasterType.Curve },
+            { 9, FunctionEditorMasterType.Exponent },
+            { 10, FunctionEditorMasterType.Curve }
+        };
     }
 }
