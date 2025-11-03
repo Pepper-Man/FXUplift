@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
+using static H2ToH3EffectConverter.ReadFromH2;
 
 namespace H2ToH3EffectConverter
 {
@@ -112,7 +113,23 @@ namespace H2ToH3EffectConverter
             public string Extension { get; set; }
         }
 
-        public static Effect GetDataFromXML(string xmlPath, string h2ekPath)
+        public class Particle
+        {
+            public uint MainFlags { get; set; }
+            public uint AppearFlags { get; set; }
+            public int Billboard { get; set; }
+            public int FirstSeqIndex { get; set; }
+            public int SeqCount { get; set; }
+            public string ShaderTemplate { get; set; }
+            public TagReferenceData Bitmap { get; set; }
+            public Halo2Function Colour { get; set; }
+            public Halo2Function Alpha { get; set; }
+            public Halo2Function Scale { get; set; }
+            public Halo2Function Rotation { get; set; }
+            public Halo2Function FrameIndex { get; set; }
+        }
+
+        public static Effect GetEffectDataFromXML(string xmlPath, string h2ekPath, string h3ekPath)
         {
             Effect effect = new Effect();
 
@@ -198,6 +215,15 @@ namespace H2ToH3EffectConverter
                             Path = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").InnerText.Trim(),
                             Extension = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").Attributes["type"].Value
                         };
+                        string particleH2TagPath = Path.ChangeExtension(Path.Combine(h2ekPath + "\\tags\\" + particleSystem.ParticleRef.Path), "particle");
+                        string particleH3TagPath = Path.ChangeExtension(Path.Combine(h3ekPath + "\\tags\\halo_2\\" + particleSystem.ParticleRef.Path), "particle");
+
+                        // Create particle tag from H2 data if it doesn't exist in H3 yet
+                        if (!File.Exists(particleH3TagPath))
+                        {
+                            string particleXmlPath = Utils.ExtractTagXML(particleH2TagPath, "particle", h2ekPath);
+                            GetParticleDataFromXML(particleXmlPath, h2ekPath);
+                        }
 
                         particleSystem.Location = int.Parse(particleSysElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
                         particleSystem.CoordSystem = int.Parse(particleSysElement.SelectNodes("./field[@name='coordinate system']")[0].InnerText.Trim().Substring(0, 1));
@@ -422,6 +448,157 @@ namespace H2ToH3EffectConverter
             }
 
             return effect;
+        }
+    
+        public static Particle GetParticleDataFromXML(string xmlPath, string h2ekPath)
+        {
+            Particle particle = new Particle();
+
+            XmlReaderSettings settings = new XmlReaderSettings
+            {
+                ValidationType = ValidationType.None,
+                DtdProcessing = DtdProcessing.Ignore
+            };
+
+            string xmlData = Utils.CleanXML(xmlPath);
+            using (XmlReader reader = XmlReader.Create(new StringReader(xmlData), settings))
+            {
+                XmlDocument particleFile = new XmlDocument();
+                particleFile.Load(reader);
+
+                // Simple data
+                particle.MainFlags = uint.Parse(particleFile.SelectSingleNode("//field[@name='flags']").InnerText.Trim().Substring(0, 1));
+                particle.Billboard = int.Parse(particleFile.SelectSingleNode("//field[@name='first sequence index']").InnerText.Trim().Substring(0, 1));
+                particle.FirstSeqIndex = int.Parse(particleFile.SelectSingleNode("//field[@name='first sequence index']").InnerText.Trim());
+                particle.SeqCount = int.Parse(particleFile.SelectSingleNode("//field[@name='sequence count']").InnerText.Trim());
+
+                // Shader stuff
+                particle.ShaderTemplate = particleFile.SelectSingleNode("//tag_reference[@name='shader template']").InnerText.Trim();
+                XmlNodeList shaderParams = particleFile.SelectNodes("//block[@name='shader parameters']/element");
+                foreach (XmlNode parameter in shaderParams)
+                {
+                    if (parameter.SelectSingleNode("./field[@name='name']").InnerText.Trim() == "alpha_map_texture")
+                    {
+                        particle.Bitmap = new TagReferenceData
+                        {
+                            Path = parameter.SelectSingleNode("./tag_reference[@name='bitmap']").InnerText.Trim(),
+                            Extension = "bitm"
+                        };
+                    }
+                }
+
+                // Function data
+                XmlNodeList particleFunctionGroups = particleFile.SelectNodes("//field[@name='Input Variable']");
+                List<Halo2Function> particleFunctions = new List<Halo2Function>();
+                foreach (XmlNode inputVarField in particleFunctionGroups)
+                {
+                    Halo2Function func = new Halo2Function();
+
+                    func.InputVar = Utils.funcInputMapping[inputVarField.InnerText.Trim()];
+                    func.RangeVar = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Range Variable']")?.InnerText.Trim()];
+                    func.OutputMod = int.Parse(inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier']")?.InnerText.Trim().Substring(0, 1));
+                    func.OutputModInput = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier Input']")?.InnerText.Trim()];
+
+                    // Read data block
+                    XmlNode dataBlock = inputVarField.SelectSingleNode("following-sibling::block[@name='data']");
+                    func.RawData = dataBlock.SelectNodes("./element/field[@name='Value']").Cast<XmlNode>().Select(n => int.Parse(n.InnerText.Trim())).ToArray();
+
+                    // Convert raw data to signed bytes
+                    sbyte[] signed = func.RawData.Select(i => (sbyte)i).ToArray();
+                    // Then read some values
+                    func.BaseVal = Utils.ReadHalo2PackedFloat(signed, 6);
+                    func.RangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
+
+                    // First integer is function type index
+                    func.FuncType = func.RawData[0];
+
+                    // Second int is use range, 0=off 1=on
+                    func.UseRange = func.RawData[1] != 0;
+
+                    // Function might hold colour rather than float values
+                    // Convert raw data to UNsigned bytes
+                    // Colour RGB data is in reverse order cos endianness, hence backwards array indices
+                    byte[] unsigned = func.RawData.Select(i => (byte)i).ToArray();
+
+                    // H2 stores RGB 0-255 but GameColor.FromRgb() expects linear 0-1 values
+                    float[] colour1Linear = Utils.ByteRgbToLinearNormalized(unsigned[6], unsigned[5], unsigned[4]);
+                    float[] colour2Linear = Utils.ByteRgbToLinearNormalized(unsigned[18], unsigned[17], unsigned[16]);
+                    float[] colour3Linear = Utils.ByteRgbToLinearNormalized(unsigned[10], unsigned[9], unsigned[8]);
+                    float[] colour4Linear = Utils.ByteRgbToLinearNormalized(unsigned[14], unsigned[13], unsigned[12]);
+
+                    int funcType = func.RawData[1];
+
+                    if (funcType >= 32) // Check for colour-type function
+                    {
+                        if (funcType == 32 || funcType == 33)
+                        {
+                            // 2-Colour
+                            func.ColourType = 2;
+                            func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
+                            func.Colour2 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
+
+                            if (funcType == 33)
+                            {
+                                func.UseRange = true;
+                            }
+                            else
+                            {
+                                func.UseRange = false;
+                            }
+                        }
+                        else if (funcType == 48 || funcType == 49)
+                        {
+                            // 3-Colour
+                            func.ColourType = 3;
+                            // For some godforsaken reason the colour order changes the more colours there are
+                            // Figured out through trial and error which order to use
+                            func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
+                            func.Colour3 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
+                            func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
+
+                            if (funcType == 49)
+                            {
+                                func.UseRange = true;
+                            }
+                            else
+                            {
+                                func.UseRange = false;
+                            }
+                        }
+                        else if (funcType == 64 || funcType == 65)
+                        {
+                            // 4-Colour
+                            // For some godforsaken reason the colour order changes the more colours there are
+                            // Figured out through trial and error which order to use
+                            func.ColourType = 4;
+                            func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
+                            func.Colour4 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
+                            func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
+                            func.Colour3 = GameColor.FromRgb(colour4Linear[0], colour4Linear[1], colour4Linear[2]);
+
+                            if (funcType == 65)
+                            {
+                                func.UseRange = true;
+                            }
+                            else
+                            {
+                                func.UseRange = false;
+                            }
+                        }
+                    }
+
+                    particleFunctions.Add(func);
+                }
+
+                // Same order as defined in the H2 tag
+                particle.Colour = particleFunctions[0];
+                particle.Alpha = particleFunctions[1];
+                particle.Scale = particleFunctions[2];
+                particle.Rotation = particleFunctions[3];
+                particle.FrameIndex = particleFunctions[4];
+            }
+
+            return particle;
         }
     }
 }

@@ -176,6 +176,10 @@ namespace H2ToH3EffectConverter
             {
                 subFolder = "xml\\particle_phys";
             }
+            else if (type == "particle")
+            {
+                subFolder = "xml\\particles";
+            }
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string xmlDir = Path.Combine(baseDir, subFolder);
