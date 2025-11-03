@@ -267,5 +267,14 @@ namespace H2ToH3EffectConverter
             { 9, FunctionEditorMasterType.Exponent },
             { 10, FunctionEditorMasterType.Curve }
         };
+
+        public static Dictionary<int, int> billboardTypeMapping = new Dictionary<int, int>
+        {
+            { 0, 0 },
+            { 1, 2 },
+            { 2, 3 },
+            { 3, 4 },
+            { 4, 5 },
+        };
     }
 }

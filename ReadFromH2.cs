@@ -47,6 +47,7 @@ namespace H2ToH3EffectConverter
         public class ParticleSystem
         {
             public TagReferenceData ParticleRef { get; set; }
+            public Particle Particle { get; set; }
             public int Location { get; set; }
             public int CoordSystem { get; set; }
             public int Environment { get; set; }
@@ -222,7 +223,7 @@ namespace H2ToH3EffectConverter
                         if (!File.Exists(particleH3TagPath))
                         {
                             string particleXmlPath = Utils.ExtractTagXML(particleH2TagPath, "particle", h2ekPath);
-                            GetParticleDataFromXML(particleXmlPath, h2ekPath);
+                            particleSystem.Particle = GetParticleDataFromXML(particleXmlPath, h2ekPath);
                         }
 
                         particleSystem.Location = int.Parse(particleSysElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);

@@ -2,6 +2,7 @@
 using Bungie.Tags;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace H2ToH3EffectConverter
@@ -10,6 +11,7 @@ namespace H2ToH3EffectConverter
     using Halo2Function = ReadFromH2.Halo2Function;
     using Effect = ReadFromH2.Effect;
     using ParticlePhysics = ReadFromH2.ParticlePhysics;
+    using Particle = ReadFromH2.Particle;
 
     internal class WriteToH3
     {
@@ -63,7 +65,14 @@ namespace H2ToH3EffectConverter
                 for (int pSysIndex = 0;  pSysIndex < particleSysCount; pSysIndex++)
                 {
                     ((TagFieldBlock)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems")).AddElement();
-                    ((TagFieldReference)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/Reference:particle")).Path = TagPath.FromPathAndType(effect.Events[eventIndex].ParticleSystems[pSysIndex].ParticleRef.Path, effect.Events[eventIndex].ParticleSystems[pSysIndex].ParticleRef.Extension);
+                    ((TagFieldReference)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/Reference:particle")).Path = TagPath.FromPathAndType(Path.Combine("halo_2\\", effect.Events[eventIndex].ParticleSystems[pSysIndex].ParticleRef.Path), effect.Events[eventIndex].ParticleSystems[pSysIndex].ParticleRef.Extension);
+                    
+                    // Null means particle tag already exists
+                    if (effect.Events[eventIndex].ParticleSystems[pSysIndex].Particle != null)
+                    {
+                        WriteH3Particle(h3ekPath, Path.Combine("halo_2\\", effect.Events[eventIndex].ParticleSystems[pSysIndex].ParticleRef.Path), effect.Events[eventIndex].ParticleSystems[pSysIndex].Particle);
+                    }
+
                     ((TagFieldBlockIndex)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/LongBlockIndex:location")).Value = effect.Events[eventIndex].ParticleSystems[pSysIndex].Location;
                     ((TagFieldEnum)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/ShortEnum:coordinate system")).Value = effect.Events[eventIndex].ParticleSystems[pSysIndex].CoordSystem;
                     ((TagFieldEnum)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/ShortEnum:environment")).Value = effect.Events[eventIndex].ParticleSystems[pSysIndex].Environment;
@@ -315,6 +324,17 @@ namespace H2ToH3EffectConverter
 
 
             tagFile.Save();
+        }
+
+        public static void WriteH3Particle(string h3ekPath, string outputPath, Particle particle)
+        {
+            TagPath outputTagPath = TagPath.FromPathAndExtension(outputPath, "particle");
+            TagFile tagFile = new TagFile();
+            tagFile.New(outputTagPath);
+
+            ((TagFieldFlags)tagFile.SelectField($"Flags:main flags")).RawValue = particle.MainFlags;
+            ((TagFieldFlags)tagFile.SelectField($"Flags:appearance flags")).RawValue = particle.AppearFlags;
+            ((TagFieldEnum)tagFile.SelectField($"ShortEnum:particle billboard style")).Value = Utils.billboardTypeMapping[particle.Billboard];
         }
     }
 }
