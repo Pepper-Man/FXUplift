@@ -276,5 +276,32 @@ namespace H2ToH3EffectConverter
             { 3, 4 },
             { 4, 5 },
         };
+
+        public static Dictionary<string, uint> particleMainFlagValues = new Dictionary<string, uint>
+        {
+            { "dies at rest", 1 },
+            { "dies in air", 8 },
+            { "dies in media", 4 },
+            { "dies on structure collision", 2 },
+            { "has sweetener", 16 },
+        };
+
+        public static Dictionary<string, uint> particleAppearFlagValues = new Dictionary<string, uint>
+        {
+            { "bitmap authored vertically", 32 },
+            { "disable frame blending", 0 },
+            { "random u mirror", 1 },
+            { "random v mirror", 2 },
+            { "receive lightmap lighting", 8 },
+            { "select random sequence", 0 },
+            { "spins", 0 },
+            { "tint from diffuse texture", 16 },
+        };
+
+        public static Dictionary<string, uint> particleAnimFlagValues = new Dictionary<string, uint>
+        {
+            { "can animate backwards", 2 },
+            { "frame animation one shot", 1 },
+        };
     }
 }

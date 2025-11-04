@@ -332,9 +332,33 @@ namespace H2ToH3EffectConverter
             TagFile tagFile = new TagFile();
             tagFile.New(outputTagPath);
 
-            ((TagFieldFlags)tagFile.SelectField($"Flags:main flags")).RawValue = particle.MainFlags;
-            ((TagFieldFlags)tagFile.SelectField($"Flags:appearance flags")).RawValue = particle.AppearFlags;
+            uint mainFlagsVal = 0, appearFlagsVal = 0, animFlagsVal = 0;
+            if (particle.Flags[0] != "0")
+            {
+                for (int i = 1; i <  particle.Flags.Length; i++) // Start at one to skip the value and go straight to the actual flags
+                {
+                    if (Utils.particleMainFlagValues.ContainsKey(particle.Flags[i]))
+                    {
+                        mainFlagsVal += Utils.particleMainFlagValues[particle.Flags[i]];
+                    }
+                    else if (Utils.particleAppearFlagValues.ContainsKey(particle.Flags[i]))
+                    {
+                        appearFlagsVal += Utils.particleAppearFlagValues[particle.Flags[i]];
+                    }
+                    else if (Utils.particleAnimFlagValues.ContainsKey(particle.Flags[i]))
+                    {
+                        animFlagsVal += Utils.particleAnimFlagValues[particle.Flags[i]];
+                    }
+                }
+            }
+
+            ((TagFieldFlags)tagFile.SelectField($"Flags:main flags")).RawValue = mainFlagsVal;
+            ((TagFieldFlags)tagFile.SelectField($"Flags:appearance flags")).RawValue = appearFlagsVal;
+            ((TagFieldFlags)tagFile.SelectField($"Flags:animation flags")).RawValue = animFlagsVal;
             ((TagFieldEnum)tagFile.SelectField($"ShortEnum:particle billboard style")).Value = Utils.billboardTypeMapping[particle.Billboard];
+
+
+            tagFile.Save();
         }
     }
 }

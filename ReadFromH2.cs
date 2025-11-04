@@ -116,8 +116,7 @@ namespace H2ToH3EffectConverter
 
         public class Particle
         {
-            public uint MainFlags { get; set; }
-            public uint AppearFlags { get; set; }
+            public string[] Flags { get; set; }
             public int Billboard { get; set; }
             public int FirstSeqIndex { get; set; }
             public int SeqCount { get; set; }
@@ -468,7 +467,7 @@ namespace H2ToH3EffectConverter
                 particleFile.Load(reader);
 
                 // Simple data
-                particle.MainFlags = uint.Parse(particleFile.SelectSingleNode("//field[@name='flags']").InnerText.Trim().Substring(0, 1));
+                particle.Flags = particleFile.SelectSingleNode("//field[@name='flags']").InnerText.Trim().Replace("\t", "").Split('\n');
                 particle.Billboard = int.Parse(particleFile.SelectSingleNode("//field[@name='first sequence index']").InnerText.Trim().Substring(0, 1));
                 particle.FirstSeqIndex = int.Parse(particleFile.SelectSingleNode("//field[@name='first sequence index']").InnerText.Trim());
                 particle.SeqCount = int.Parse(particleFile.SelectSingleNode("//field[@name='sequence count']").InnerText.Trim());
