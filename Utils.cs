@@ -303,5 +303,39 @@ namespace H2ToH3EffectConverter
             { "can animate backwards", 2 },
             { "frame animation one shot", 1 },
         };
+
+        // Dictionary for converting H2's particle shader templates to their respective alpha mode
+        // Plasma doesn't exist in H3, dunno what to do with that
+        // Alpha test is a special case since its a different category, hence 99
+        // "Normal" additive mode for H3 particles doesnt let them fade properly, need to use add*srcalpha instead
+        // 0 - opaque
+        // 1 - additive
+        // 2 - multiply
+        // 3 - alpha blend
+        // 4 - double mult
+        // 5 - max
+        // 6 - mult add
+        // 7 - add times dstalpha
+        // 8 - add times srcalpha
+        // 9 - inv alpha blend
+        // 10 - pre mult alpha
+        // 50 - plasma
+        // 99 - alpha test
+        public static Dictionary<string, int> shaderTemplateBlendMode = new Dictionary<string, int>
+        {
+            { "particle_alpha_blend_distortion", 3 },
+            { "particle_alpha_test", 99 },
+            { "particle_plasma", 50 },
+            { "particle_alpha_multiply_add_tint", 6 },
+            { "particle_alpha_test_no_lighting", 99 },
+            { "particle_alpha_test_tint", 99 },
+            { "particle_alpha_test_tint_no_lighting", 99 },
+            { "particle_additive", 8 },
+            { "particle_additive_tint", 8 },
+            { "particle_alpha_blend", 3 },
+            { "particle_alpha_blend_tint", 3 },
+            { "particle_alpha_multiply_add", 6 },
+            { "particle_alpha_test_no_lighting_fixed_for_glass", 99 },
+        };
     }
 }

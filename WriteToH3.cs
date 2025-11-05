@@ -7,11 +7,12 @@ using System.Linq;
 
 namespace H2ToH3EffectConverter
 {
+    using static H2ToH3EffectConverter.ReadFromH2;
+    using Effect = ReadFromH2.Effect;
     using Emitter = ReadFromH2.Emitter;
     using Halo2Function = ReadFromH2.Halo2Function;
-    using Effect = ReadFromH2.Effect;
-    using ParticlePhysics = ReadFromH2.ParticlePhysics;
     using Particle = ReadFromH2.Particle;
+    using ParticlePhysics = ReadFromH2.ParticlePhysics;
 
     internal class WriteToH3
     {
@@ -356,6 +357,78 @@ namespace H2ToH3EffectConverter
             ((TagFieldFlags)tagFile.SelectField($"Flags:appearance flags")).RawValue = appearFlagsVal;
             ((TagFieldFlags)tagFile.SelectField($"Flags:animation flags")).RawValue = animFlagsVal;
             ((TagFieldEnum)tagFile.SelectField($"ShortEnum:particle billboard style")).Value = Utils.billboardTypeMapping[particle.Billboard];
+            ((TagFieldElementInteger)tagFile.SelectField($"ShortInteger:first sequence index")).Data = particle.FirstSeqIndex;
+            ((TagFieldElementInteger)tagFile.SelectField($"ShortInteger:sequence count")).Data = particle.SeqCount;
+
+            // Shader
+            ((TagFieldBlock)tagFile.SelectField($"Struct:actual shader?/Block:parameters")).AddElement();
+            ((TagFieldElementStringID)tagFile.SelectField($"Struct:actual shader?/Block:parameters[0]/StringId:parameter name")).Data = "base_map";
+            ((TagFieldEnum)tagFile.SelectField($"Struct:actual shader?/Block:parameters[0]/LongEnum:parameter type")).Value = 0;
+            ((TagFieldReference)tagFile.SelectField($"Struct:actual shader?/Block:parameters[0]/Reference:bitmap")).Path = TagPath.FromPathAndExtension(Path.Combine("halo_2\\", particle.Bitmap.Path), "bitmap");
+            int alphaMode = Utils.shaderTemplateBlendMode[Path.GetFileName(particle.ShaderTemplate)];
+            if (alphaMode == 50)
+            {
+                // Plasma ? disable alpha for now
+                ((TagFieldElementInteger)tagFile.SelectField($"Struct:actual shader?/Block:options[1]/ShortInteger:short")).Data = 0;
+            }
+            else if (alphaMode == 99)
+            {
+                // Alpha test
+                // Don't have alpha test for H3 particles - use alpha blend?
+                ((TagFieldElementInteger)tagFile.SelectField($"Struct:actual shader?/Block:options[1]/ShortInteger:short")).Data = 3;
+            }
+            else
+            {
+                // Blend mode
+                ((TagFieldElementInteger)tagFile.SelectField($"Struct:actual shader?/Block:options[1]/ShortInteger:short")).Data = alphaMode;
+            }
+
+            // Colour
+            ((TagFieldEnum)tagFile.SelectField($"Struct:color/CharEnum:Input Variable")).Value = particle.Colour.InputVar;
+            ((TagFieldEnum)tagFile.SelectField($"Struct:color/CharEnum:Range Variable")).Value = particle.Colour.RangeVar;
+            ((TagFieldEnum)tagFile.SelectField($"Struct:color/CharEnum:Output Modifier")).Value = particle.Colour.OutputMod;
+            ((TagFieldEnum)tagFile.SelectField($"Struct:color/CharEnum:Output Modifier Input")).Value = particle.Colour.OutputModInput;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.IsRanged = particle.Colour.UseRange;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particle.Colour.FuncType];
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.SetColor(0, particle.Colour.Colour1);
+            if (particle.Colour.ColourType == 2)
+            {
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.TwoColor;
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.SetColor(1, particle.Colour.Colour2);
+            }
+            else if (particle.Colour.ColourType == 3)
+            {
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.ThreeColor;
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.SetColor(1, particle.Colour.Colour2);
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.SetColor(2, particle.Colour.Colour3);
+            }
+            else if (particle.Colour.ColourType == 4)
+            {
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.FourColor;
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.SetColor(1, particle.Colour.Colour2);
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.SetColor(2, particle.Colour.Colour3);
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.SetColor(3, particle.Colour.Colour4);
+            }
+
+            // Alpha
+            ((TagFieldEnum)tagFile.SelectField($"Struct:alpha/CharEnum:Input Variable")).Value = particle.Alpha.InputVar;
+            ((TagFieldEnum)tagFile.SelectField($"Struct:alpha/CharEnum:Range Variable")).Value = particle.Alpha.RangeVar;
+            ((TagFieldEnum)tagFile.SelectField($"Struct:alpha/CharEnum:Output Modifier")).Value = particle.Alpha.OutputMod;
+            ((TagFieldEnum)tagFile.SelectField($"Struct:alpha/CharEnum:Output Modifier Input")).Value = particle.Alpha.OutputModInput;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.ClampRangeMin = particle.Alpha.BaseVal;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.ClampRangeMax = particle.Alpha.RangeVal;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particle.Alpha.FuncType];
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.IsRanged = particle.Alpha.UseRange;
+
+            // Frame Index
+            ((TagFieldEnum)tagFile.SelectField($"Struct:frame index/CharEnum:Input Variable")).Value = particle.FrameIndex.InputVar;
+            ((TagFieldEnum)tagFile.SelectField($"Struct:frame index/CharEnum:Range Variable")).Value = particle.FrameIndex.RangeVar;
+            ((TagFieldEnum)tagFile.SelectField($"Struct:frame index/CharEnum:Output Modifier")).Value = particle.FrameIndex.OutputMod;
+            ((TagFieldEnum)tagFile.SelectField($"Struct:frame index/CharEnum:Output Modifier Input")).Value = particle.FrameIndex.OutputModInput;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:frame index/Custom:Mapping")).Value.ClampRangeMin = particle.FrameIndex.BaseVal;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:frame index/Custom:Mapping")).Value.ClampRangeMax = particle.FrameIndex.RangeVal;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:frame index/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particle.FrameIndex.FuncType];
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:frame index/Custom:Mapping")).Value.IsRanged = particle.FrameIndex.UseRange;
 
 
             tagFile.Save();
