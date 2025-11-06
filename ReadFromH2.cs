@@ -106,6 +106,17 @@ namespace H2ToH3EffectConverter
             public GameColor Colour2 { get; set; }
             public GameColor Colour3 { get; set; }
             public GameColor Colour4 { get; set; }
+            public CurvePoints CurvePoints { get; set; }
+        }
+
+        public class CurvePoints
+        {
+            public float Y0;
+            public float Y1;
+            public float? Y2;   // null for linear
+            public float? Y3;   // null for linear
+
+            public bool IsLinearKey => Y2.HasValue && Y3.HasValue;
         }
 
         public class TagReferenceData
@@ -344,6 +355,9 @@ namespace H2ToH3EffectConverter
                                 // Second int is use range, 0=off 1=on
                                 func.UseRange = func.RawData[1] != 0;
 
+                                // Get curve data
+                                func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
+
                                 // Function might hold colour rather than float values
                                 // Convert raw data to UNsigned bytes
                                 // Colour RGB data is in reverse order cos endianness, hence backwards array indices
@@ -517,6 +531,9 @@ namespace H2ToH3EffectConverter
 
                     // Second int is use range, 0=off 1=on
                     func.UseRange = func.RawData[1] != 0;
+
+                    // Get curve data
+                    func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
 
                     // Function might hold colour rather than float values
                     // Convert raw data to UNsigned bytes

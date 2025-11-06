@@ -12,6 +12,8 @@ using System.Text;
 
 namespace H2ToH3EffectConverter
 {
+    using CurvePoints = ReadFromH2.CurvePoints;
+
     internal class Utils
     {
         public static string CleanXML(string filePath)
@@ -337,5 +339,43 @@ namespace H2ToH3EffectConverter
             { "particle_alpha_multiply_add", 6 },
             { "particle_alpha_test_no_lighting_fixed_for_glass", 99 },
         };
+
+        public static class HaloCurveParser
+        {
+            public static CurvePoints ParseCurve(sbyte[] data)
+            {
+                // Helper to decode float from 4 bytes starting at an index
+                float ReadFloat(int byteIndex)
+                {
+                    byte[] raw = new byte[4];
+                    for (int i = 0; i < 4; i++)
+                        raw[i] = (byte)data[byteIndex + i];
+
+                    return BitConverter.ToSingle(raw, 0);
+                }
+
+                // First value determines graph type: 4 = linear, 5 = linear key
+                int graphType = data[0];
+
+                if (graphType == 4)
+                {
+                    // y0 and y1 always exist?
+                    float y0 = ReadFloat(24);
+                    float y1 = ReadFloat(32);
+
+                    return new CurvePoints
+                    {
+                        Y0 = y0,
+                        Y1 = y1,
+                        Y2 = null,
+                        Y3 = null
+                    };
+                }
+                else
+                {
+                    return new CurvePoints { Y0 = 0, Y1 = 0, Y2 = null, Y3 = null };
+                }    
+            }
+        }
     }
 }
