@@ -150,7 +150,7 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle emission rate/Custom:Mapping")).Value.ClampRangeMax = emissionRate.RangeVal * 30; // particles per tick -> particles per second
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle emission rate/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[emissionRate.FuncType];
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle emission rate/Custom:Mapping")).Value.IsRanged = emissionRate.UseRange;
-                        WriteFunctionCurve(tagFile, emissionRate, $"{emitter}/Struct:emission rate");
+                        WriteFunctionCurve(tagFile, emissionRate, $"{emitter}/Struct:particle emission rate");
 
                         // Particle Lifespan
                         Halo2Function lifespan = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].Lifespan;
