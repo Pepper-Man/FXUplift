@@ -116,6 +116,7 @@ namespace H2ToH3EffectConverter
 
         public class Particle
         {
+            public bool AlreadyExists { get; set; }
             public string[] Flags { get; set; }
             public int Billboard { get; set; }
             public int FirstSeqIndex { get; set; }
@@ -218,11 +219,13 @@ namespace H2ToH3EffectConverter
                         string particleH2TagPath = Path.ChangeExtension(Path.Combine(h2ekPath + "\\tags\\" + particleSystem.ParticleRef.Path), "particle");
                         string particleH3TagPath = Path.ChangeExtension(Path.Combine(h3ekPath + "\\tags\\halo_2\\" + particleSystem.ParticleRef.Path), "particle");
 
+                        string particleXmlPath = Utils.ExtractTagXML(particleH2TagPath, "particle", h2ekPath);
+                        particleSystem.Particle = GetParticleDataFromXML(particleXmlPath, h2ekPath);
+
                         // Create particle tag from H2 data if it doesn't exist in H3 yet
-                        if (!File.Exists(particleH3TagPath))
+                        if (File.Exists(particleH3TagPath))
                         {
-                            string particleXmlPath = Utils.ExtractTagXML(particleH2TagPath, "particle", h2ekPath);
-                            particleSystem.Particle = GetParticleDataFromXML(particleXmlPath, h2ekPath);
+                            particleSystem.Particle.AlreadyExists = true;
                         }
 
                         particleSystem.Location = int.Parse(particleSysElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);

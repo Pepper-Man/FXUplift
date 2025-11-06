@@ -68,8 +68,7 @@ namespace H2ToH3EffectConverter
                     ((TagFieldBlock)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems")).AddElement();
                     ((TagFieldReference)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/Reference:particle")).Path = TagPath.FromPathAndType(Path.Combine("halo_2\\", effect.Events[eventIndex].ParticleSystems[pSysIndex].ParticleRef.Path), effect.Events[eventIndex].ParticleSystems[pSysIndex].ParticleRef.Extension);
                     
-                    // Null means particle tag already exists
-                    if (effect.Events[eventIndex].ParticleSystems[pSysIndex].Particle != null)
+                    if (!effect.Events[eventIndex].ParticleSystems[pSysIndex].Particle.AlreadyExists)
                     {
                         WriteH3Particle(h3ekPath, Path.Combine("halo_2\\", effect.Events[eventIndex].ParticleSystems[pSysIndex].ParticleRef.Path), effect.Events[eventIndex].ParticleSystems[pSysIndex].Particle);
                     }
@@ -269,6 +268,17 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle initial rotation rate/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particleAngVel.FuncType];
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle initial rotation rate/Custom:Mapping")).Value.IsRanged = particleAngVel.UseRange;
 
+                        // Particle Rotation
+                        Halo2Function particleRotation = effect.Events[eventIndex].ParticleSystems[pSysIndex].Particle.Rotation;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle rotation/CharEnum:Input Variable")).Value = particleRotation.InputVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle rotation/CharEnum:Range Variable")).Value = particleRotation.RangeVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle rotation/CharEnum:Output Modifier")).Value = particleRotation.OutputMod;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle rotation/CharEnum:Output Modifier Input")).Value = particleRotation.OutputModInput;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle rotation/Custom:Mapping")).Value.ClampRangeMin = particleRotation.BaseVal;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle rotation/Custom:Mapping")).Value.ClampRangeMax = particleRotation.RangeVal;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle rotation/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particleRotation.FuncType];
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle rotation/Custom:Mapping")).Value.IsRanged = particleRotation.UseRange;
+
                         // Particle Size
                         Halo2Function particleSize = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].Size;
                         ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle size/CharEnum:Input Variable")).Value = particleSize.InputVar;
@@ -279,6 +289,17 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle size/Custom:Mapping")).Value.ClampRangeMax = particleSize.RangeVal;
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle size/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particleSize.FuncType];
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle size/Custom:Mapping")).Value.IsRanged = particleSize.UseRange;
+
+                        // Particle Scale
+                        Halo2Function particleScale = effect.Events[eventIndex].ParticleSystems[pSysIndex].Particle.Scale;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle scale/CharEnum:Input Variable")).Value = particleScale.InputVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle scale/CharEnum:Range Variable")).Value = particleScale.RangeVar;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle scale/CharEnum:Output Modifier")).Value = particleScale.OutputMod;
+                        ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle scale/CharEnum:Output Modifier Input")).Value = particleScale.OutputModInput;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle scale/Custom:Mapping")).Value.ClampRangeMin = particleScale.BaseVal;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle scale/Custom:Mapping")).Value.ClampRangeMax = particleScale.RangeVal;
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle scale/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particleScale.FuncType];
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle scale/Custom:Mapping")).Value.IsRanged = particleScale.UseRange;
 
                         // Particle Tint
                         Halo2Function particleTint = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].Tint;
