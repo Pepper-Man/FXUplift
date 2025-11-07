@@ -470,14 +470,12 @@ namespace H2ToH3EffectConverter
         {
             if (Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Basic && Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Transition)
             {
-                
-
                 if (func.CurvePoints.IsLinearKey)
                 {
-                    GamePoint2d baseY0 = new GamePoint2d(0, func.CurvePoints.baseY0);
-                    GamePoint2d baseY1 = new GamePoint2d((float)func.CurvePoints.baseX1, func.CurvePoints.baseY1);
-                    GamePoint2d baseY2 = new GamePoint2d((float)func.CurvePoints.baseX2, (float)func.CurvePoints.baseY2);
-                    GamePoint2d baseY3 = new GamePoint2d(1, (float)func.CurvePoints.baseY3);
+                    GamePoint2d baseY0 = new GamePoint2d(0, func.CurvePoints.BaseY0);
+                    GamePoint2d baseY1 = new GamePoint2d((float)func.CurvePoints.BaseX1, func.CurvePoints.BaseY1);
+                    GamePoint2d baseY2 = new GamePoint2d((float)func.CurvePoints.BaseX2, (float)func.CurvePoints.BaseY2);
+                    GamePoint2d baseY3 = new GamePoint2d(1, (float)func.CurvePoints.BaseY3);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.InsertControlPoint(0, baseY1.X);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.InsertControlPoint(0, baseY2.X);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 0, baseY0);
@@ -487,10 +485,10 @@ namespace H2ToH3EffectConverter
 
                     if (useRange)
                     {
-                        GamePoint2d rangeY0 = new GamePoint2d(0, func.CurvePoints.rangeY0);
-                        GamePoint2d rangeY1 = new GamePoint2d((float)func.CurvePoints.rangeX1, func.CurvePoints.rangeY1);
-                        GamePoint2d rangeY2 = new GamePoint2d((float)func.CurvePoints.rangeX2, (float)func.CurvePoints.rangeY2);
-                        GamePoint2d rangeY3 = new GamePoint2d(1, (float)func.CurvePoints.rangeY3);
+                        GamePoint2d rangeY0 = new GamePoint2d(0, func.CurvePoints.RangeY0);
+                        GamePoint2d rangeY1 = new GamePoint2d((float)func.CurvePoints.RangeX1, func.CurvePoints.RangeY1);
+                        GamePoint2d rangeY2 = new GamePoint2d((float)func.CurvePoints.RangeX2, (float)func.CurvePoints.RangeY2);
+                        GamePoint2d rangeY3 = new GamePoint2d(1, (float)func.CurvePoints.RangeY3);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.InsertControlPoint(1, rangeY1.X);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.InsertControlPoint(1, rangeY2.X);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 0, rangeY0);
@@ -501,15 +499,15 @@ namespace H2ToH3EffectConverter
                 }
                 else
                 {
-                    GamePoint2d baseY0 = new GamePoint2d(0, func.CurvePoints.baseY0);
-                    GamePoint2d baseY1 = new GamePoint2d(1, func.CurvePoints.baseY1);
+                    GamePoint2d baseY0 = new GamePoint2d(0, func.CurvePoints.BaseY0);
+                    GamePoint2d baseY1 = new GamePoint2d(1, func.CurvePoints.BaseY1);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 0, baseY0);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 1, baseY1);
 
                     if (useRange)
                     {
-                        GamePoint2d rangeY0 = new GamePoint2d(0, func.CurvePoints.rangeY0);
-                        GamePoint2d rangeY1 = new GamePoint2d(1, func.CurvePoints.rangeY1);
+                        GamePoint2d rangeY0 = new GamePoint2d(0, func.CurvePoints.RangeY0);
+                        GamePoint2d rangeY1 = new GamePoint2d(1, func.CurvePoints.RangeY1);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 0, rangeY0);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 1, rangeY1);
                     }

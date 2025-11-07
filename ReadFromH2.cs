@@ -106,26 +106,48 @@ namespace H2ToH3EffectConverter
             public GameColor Colour2 { get; set; }
             public GameColor Colour3 { get; set; }
             public GameColor Colour4 { get; set; }
-            public CurvePoints CurvePoints { get; set; }
+            public LinearCurvePoints CurvePoints { get; set; }
+            public SplineCurvePoints SplineCurvePoints { get; set; }
         }
 
-        public class CurvePoints
+        public class LinearCurvePoints
         {
-            public float baseY0;
-            public float? baseX1;
-            public float baseY1;
-            public float? baseX2;
-            public float? baseY2;
-            public float? baseY3;
+            public float BaseY0;
+            public float? BaseX1;
+            public float BaseY1;
+            public float? BaseX2;
+            public float? BaseY2;
+            public float? BaseY3;
 
-            public float rangeY0;
-            public float? rangeX1;
-            public float rangeY1;
-            public float? rangeX2;
-            public float? rangeY2;
-            public float? rangeY3;
+            public float RangeY0;
+            public float? RangeX1;
+            public float RangeY1;
+            public float? RangeX2;
+            public float? RangeY2;
+            public float? RangeY3;
 
-            public bool IsLinearKey => baseY2.HasValue && baseY3.HasValue;
+            public bool IsLinearKey => BaseY2.HasValue && BaseY3.HasValue;
+        }
+
+        public class SplineCurvePoints
+        {
+            public float BaseY0;
+            public float BaseY1;
+
+            public float BaseHandle1X;
+            public float BaseHandle1Y;
+            public float BaseHandle2X;
+            public float BaseHandle2Y;
+
+            public float RangeY0;
+            public float RangeY1;
+
+            public float RangeHandle1X;
+            public float RangeHandle1Y;
+            public float RangeHandle2X;
+            public float RangeHandle2Y;
+
+            public bool IsSpline1;
         }
 
         public class TagReferenceData

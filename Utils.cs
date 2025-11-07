@@ -12,7 +12,7 @@ using System.Text;
 
 namespace H2ToH3EffectConverter
 {
-    using CurvePoints = ReadFromH2.CurvePoints;
+    using LinearCurvePoints = ReadFromH2.LinearCurvePoints;
 
     internal class Utils
     {
@@ -342,7 +342,7 @@ namespace H2ToH3EffectConverter
 
         public static class HaloCurveParser
         {
-            public static CurvePoints ParseCurve(sbyte[] data)
+            public static LinearCurvePoints ParseCurve(sbyte[] data)
             {
                 // Helper to decode float from 4 bytes starting at an index
                 float ReadFloat(int byteIndex)
