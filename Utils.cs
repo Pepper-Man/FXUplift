@@ -357,7 +357,7 @@ namespace H2ToH3EffectConverter
                 // First value determines graph type: 4 = linear, 5 = linear key
                 int graphType = data[0];
 
-                if (graphType == 4)
+                if (graphType == 4) // Linear
                 {
                     // y0 and y1 always exist?
                     float baseY0 = ReadFloat(24);
@@ -373,6 +373,25 @@ namespace H2ToH3EffectConverter
                         baseY3 = null,
                         rangeY0 = rangeY0,
                         rangeY1 = rangeY1,
+                        rangeY2 = null,
+                        rangeY3 = null,
+                    };
+                }
+                else if (graphType == 5) // Linear key
+                {
+                    float baseY0 = ReadFloat(24);
+                    float baseY1 = ReadFloat(32);
+                    float baseY2 = ReadFloat(40);
+                    float baseY3 = ReadFloat(48);
+
+                    return new CurvePoints
+                    {
+                        baseY0 = baseY0,
+                        baseY1 = baseY1,
+                        baseY2 = baseY2,
+                        baseY3 = baseY3,
+                        rangeY0 = 0,
+                        rangeY1 = 0,
                         rangeY2 = null,
                         rangeY3 = null,
                     };
