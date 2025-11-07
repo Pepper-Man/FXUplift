@@ -106,12 +106,12 @@ namespace H2ToH3EffectConverter
             public GameColor Colour2 { get; set; }
             public GameColor Colour3 { get; set; }
             public GameColor Colour4 { get; set; }
-            public LinearCurvePoints CurvePoints { get; set; }
-            public SplineCurvePoints SplineCurvePoints { get; set; }
+            public CurvePoints CurvePoints { get; set; }
         }
 
-        public class LinearCurvePoints
+        public class CurvePoints
         {
+            // Linear data
             public float BaseY0;
             public float? BaseX1;
             public float BaseY1;
@@ -127,27 +127,19 @@ namespace H2ToH3EffectConverter
             public float? RangeY3;
 
             public bool IsLinearKey => BaseY2.HasValue && BaseY3.HasValue;
-        }
 
-        public class SplineCurvePoints
-        {
-            public float BaseY0;
-            public float BaseY1;
+            // Spline data
+            public bool IsSpline1;
 
             public float BaseHandle1X;
             public float BaseHandle1Y;
             public float BaseHandle2X;
             public float BaseHandle2Y;
 
-            public float RangeY0;
-            public float RangeY1;
-
             public float RangeHandle1X;
             public float RangeHandle1Y;
             public float RangeHandle2X;
             public float RangeHandle2Y;
-
-            public bool IsSpline1;
         }
 
         public class TagReferenceData

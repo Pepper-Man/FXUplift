@@ -12,7 +12,7 @@ using System.Text;
 
 namespace H2ToH3EffectConverter
 {
-    using LinearCurvePoints = ReadFromH2.LinearCurvePoints;
+    using CurvePoints = ReadFromH2.CurvePoints;
 
     internal class Utils
     {
@@ -342,7 +342,7 @@ namespace H2ToH3EffectConverter
 
         public static class HaloCurveParser
         {
-            public static LinearCurvePoints ParseCurve(sbyte[] data)
+            public static CurvePoints ParseCurve(sbyte[] data)
             {
                 // Helper to decode float from 4 bytes starting at an index
                 float ReadFloat(int byteIndex)
@@ -365,7 +365,7 @@ namespace H2ToH3EffectConverter
                     float rangeY0 = ReadFloat(48);
                     float rangeY1 = ReadFloat(56);
 
-                    return new LinearCurvePoints
+                    return new CurvePoints
                     {
                         BaseY0 = baseY0,
                         BaseY1 = baseY1,
@@ -394,7 +394,7 @@ namespace H2ToH3EffectConverter
                     float rangeY3 = ReadFloat(128);
 
 
-                    return new LinearCurvePoints
+                    return new CurvePoints
                     {
                         BaseY0 = baseY0,
                         BaseX1 = baseX1,
@@ -410,9 +410,29 @@ namespace H2ToH3EffectConverter
                         RangeY3 = rangeY3,
                     };
                 }
+                else if (graphType == 7) // Spline 1
+                {
+                    float baseY0 = ReadFloat(24);
+                    float baseY1 = ReadFloat(48);
+                    float baseHandle1X = ReadFloat(28);
+                    float baseHandle1Y = ReadFloat(32);
+                    float baseHandle2X = ReadFloat(36);
+                    float baseHandle2Y = ReadFloat(40);
+
+                    return new CurvePoints
+                    {
+                        IsSpline1 = true,
+                        BaseY0 = baseY0,
+                        BaseY1 = baseY1,
+                        BaseHandle1X = baseHandle1X,
+                        BaseHandle1Y = baseHandle1Y,
+                        BaseHandle2X = baseHandle2X,
+                        BaseHandle2Y = baseHandle2Y
+                    };
+                }
                 else
                 {
-                    return new LinearCurvePoints { BaseY0 = 0, BaseY1 = 0, BaseY2 = null, BaseY3 = null };
+                    return new CurvePoints { BaseY0 = 0, BaseY1 = 0, BaseY2 = null, BaseY3 = null };
                 }    
             }
         }
