@@ -475,11 +475,11 @@ namespace H2ToH3EffectConverter
                 if (func.CurvePoints.IsLinearKey)
                 {
                     GamePoint2d baseY0 = new GamePoint2d(0, func.CurvePoints.baseY0);
-                    GamePoint2d baseY1 = new GamePoint2d((float)0.3, func.CurvePoints.baseY1);
-                    GamePoint2d baseY2 = new GamePoint2d((float)0.6, (float)func.CurvePoints.baseY2);
+                    GamePoint2d baseY1 = new GamePoint2d((float)func.CurvePoints.baseX1, func.CurvePoints.baseY1);
+                    GamePoint2d baseY2 = new GamePoint2d((float)func.CurvePoints.baseX2, (float)func.CurvePoints.baseY2);
                     GamePoint2d baseY3 = new GamePoint2d(1, (float)func.CurvePoints.baseY3);
-                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.InsertControlPoint(0, (float)0.3);
-                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.InsertControlPoint(0, (float)0.6);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.InsertControlPoint(0, baseY1.X);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.InsertControlPoint(0, baseY2.X);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 0, baseY0);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 1, baseY1);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 2, baseY2);

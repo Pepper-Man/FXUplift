@@ -380,14 +380,18 @@ namespace H2ToH3EffectConverter
                 else if (graphType == 5) // Linear key
                 {
                     float baseY0 = ReadFloat(24);
+                    float baseX1 = ReadFloat(28);
                     float baseY1 = ReadFloat(32);
+                    float baseX2 = ReadFloat(64);
                     float baseY2 = ReadFloat(40);
                     float baseY3 = ReadFloat(48);
 
                     return new CurvePoints
                     {
                         baseY0 = baseY0,
+                        baseX1 = baseX1,
                         baseY1 = baseY1,
+                        baseX2 = baseX2,
                         baseY2 = baseY2,
                         baseY3 = baseY3,
                         rangeY0 = 0,

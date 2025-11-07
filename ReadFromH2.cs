@@ -112,14 +112,18 @@ namespace H2ToH3EffectConverter
         public class CurvePoints
         {
             public float baseY0;
+            public float? baseX1;
             public float baseY1;
-            public float? baseY2;   // null for linear
-            public float? baseY3;   // null for linear
+            public float? baseX2;
+            public float? baseY2;
+            public float? baseY3;
 
             public float rangeY0;
+            public float? rangeX1;
             public float rangeY1;
-            public float? rangeY2;   // null for linear
-            public float? rangeY3;   // null for linear
+            public float? rangeX2;
+            public float? rangeY2;
+            public float? rangeY3;
 
             public bool IsLinearKey => baseY2.HasValue && baseY3.HasValue;
         }
