@@ -360,20 +360,26 @@ namespace H2ToH3EffectConverter
                 if (graphType == 4)
                 {
                     // y0 and y1 always exist?
-                    float y0 = ReadFloat(24);
-                    float y1 = ReadFloat(32);
+                    float baseY0 = ReadFloat(24);
+                    float baseY1 = ReadFloat(32);
+                    float rangeY0 = ReadFloat(48);
+                    float rangeY1 = ReadFloat(56);
 
                     return new CurvePoints
                     {
-                        Y0 = y0,
-                        Y1 = y1,
-                        Y2 = null,
-                        Y3 = null
+                        baseY0 = baseY0,
+                        baseY1 = baseY1,
+                        baseY2 = null,
+                        baseY3 = null,
+                        rangeY0 = rangeY0,
+                        rangeY1 = rangeY1,
+                        rangeY2 = null,
+                        rangeY3 = null,
                     };
                 }
                 else
                 {
-                    return new CurvePoints { Y0 = 0, Y1 = 0, Y2 = null, Y3 = null };
+                    return new CurvePoints { baseY0 = 0, baseY1 = 0, baseY2 = null, baseY3 = null };
                 }    
             }
         }
