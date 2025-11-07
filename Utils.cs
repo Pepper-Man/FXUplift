@@ -365,16 +365,16 @@ namespace H2ToH3EffectConverter
                     float rangeY0 = ReadFloat(48);
                     float rangeY1 = ReadFloat(56);
 
-                    return new CurvePoints
+                    return new LinearCurvePoints
                     {
-                        baseY0 = baseY0,
-                        baseY1 = baseY1,
-                        baseY2 = null,
-                        baseY3 = null,
-                        rangeY0 = rangeY0,
-                        rangeY1 = rangeY1,
-                        rangeY2 = null,
-                        rangeY3 = null,
+                        BaseY0 = baseY0,
+                        BaseY1 = baseY1,
+                        BaseY2 = null,
+                        BaseY3 = null,
+                        RangeY0 = rangeY0,
+                        RangeY1 = rangeY1,
+                        RangeY2 = null,
+                        RangeY3 = null,
                     };
                 }
                 else if (graphType == 5) // Linear key
@@ -394,25 +394,25 @@ namespace H2ToH3EffectConverter
                     float rangeY3 = ReadFloat(128);
 
 
-                    return new CurvePoints
+                    return new LinearCurvePoints
                     {
-                        baseY0 = baseY0,
-                        baseX1 = baseX1,
-                        baseY1 = baseY1,
-                        baseX2 = baseX2,
-                        baseY2 = baseY2,
-                        baseY3 = baseY3,
-                        rangeY0 = rangeY0,
-                        rangeX1 = rangeX1,
-                        rangeY1 = rangeY1,
-                        rangeX2 = rangeX2,
-                        rangeY2 = rangeY2,
-                        rangeY3 = rangeY3,
+                        BaseY0 = baseY0,
+                        BaseX1 = baseX1,
+                        BaseY1 = baseY1,
+                        BaseX2 = baseX2,
+                        BaseY2 = baseY2,
+                        BaseY3 = baseY3,
+                        RangeY0 = rangeY0,
+                        RangeX1 = rangeX1,
+                        RangeY1 = rangeY1,
+                        RangeX2 = rangeX2,
+                        RangeY2 = rangeY2,
+                        RangeY3 = rangeY3,
                     };
                 }
                 else
                 {
-                    return new CurvePoints { baseY0 = 0, baseY1 = 0, baseY2 = null, baseY3 = null };
+                    return new LinearCurvePoints { BaseY0 = 0, BaseY1 = 0, BaseY2 = null, BaseY3 = null };
                 }    
             }
         }
