@@ -508,8 +508,22 @@ namespace H2ToH3EffectConverter
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetSegmentType(0, 0, FunctionEditorSegmentType.Spline);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 0, startY);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 1, handle1);
-                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 2, handle2);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 3, endY);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 2, handle2);
+
+                    if (useRange)
+                    {
+                        GamePoint2d rangeStartY = new GamePoint2d(0, func.CurvePoints.RangeY0);
+                        GamePoint2d rangeEndY = new GamePoint2d(1, func.CurvePoints.RangeY1);
+                        GamePoint2d rangeHandle1 = new GamePoint2d(func.CurvePoints.RangeHandle1X, func.CurvePoints.RangeHandle1Y);
+                        GamePoint2d rangeHandle2 = new GamePoint2d(func.CurvePoints.RangeHandle2X, func.CurvePoints.RangeHandle2Y);
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetSegmentType(1, 0, FunctionEditorSegmentType.Spline);
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 0, rangeStartY);
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 1, rangeHandle1);
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 2, rangeHandle2);
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 3, rangeEndY);
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 2, rangeHandle2);
+                    }
                 }
                 else
                 {

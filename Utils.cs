@@ -419,6 +419,13 @@ namespace H2ToH3EffectConverter
                     float baseHandle2X = ReadFloat(36);
                     float baseHandle2Y = ReadFloat(40);
 
+                    float rangeY0 = ReadFloat(72);
+                    float rangeY1 = ReadFloat(96);
+                    float rangeHandle1X = ReadFloat(76);
+                    float rangeHandle1Y = ReadFloat(80);
+                    float rangeHandle2X = ReadFloat(84);
+                    float rangeHandle2Y = ReadFloat(88);
+
                     return new CurvePoints
                     {
                         IsSpline1 = true,
@@ -427,7 +434,13 @@ namespace H2ToH3EffectConverter
                         BaseHandle1X = baseHandle1X,
                         BaseHandle1Y = baseHandle1Y,
                         BaseHandle2X = baseHandle2X,
-                        BaseHandle2Y = baseHandle2Y
+                        BaseHandle2Y = baseHandle2Y,
+                        RangeY0 = rangeY0,
+                        RangeY1 = rangeY1,
+                        RangeHandle1X = rangeHandle1X,
+                        RangeHandle1Y = rangeHandle1Y,
+                        RangeHandle2X = rangeHandle2X,
+                        RangeHandle2Y = rangeHandle2Y
                     };
                 }
                 else
