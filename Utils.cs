@@ -386,6 +386,14 @@ namespace H2ToH3EffectConverter
                     float baseY2 = ReadFloat(40);
                     float baseY3 = ReadFloat(48);
 
+                    float rangeY0 = ReadFloat(104);
+                    float rangeX1 = ReadFloat(108);
+                    float rangeY1 = ReadFloat(112);
+                    float rangeX2 = ReadFloat(116);
+                    float rangeY2 = ReadFloat(120);
+                    float rangeY3 = ReadFloat(128);
+
+
                     return new CurvePoints
                     {
                         baseY0 = baseY0,
@@ -394,10 +402,12 @@ namespace H2ToH3EffectConverter
                         baseX2 = baseX2,
                         baseY2 = baseY2,
                         baseY3 = baseY3,
-                        rangeY0 = 0,
-                        rangeY1 = 0,
-                        rangeY2 = null,
-                        rangeY3 = null,
+                        rangeY0 = rangeY0,
+                        rangeX1 = rangeX1,
+                        rangeY1 = rangeY1,
+                        rangeX2 = rangeX2,
+                        rangeY2 = rangeY2,
+                        rangeY3 = rangeY3,
                     };
                 }
                 else
