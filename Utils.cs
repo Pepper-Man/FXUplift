@@ -475,6 +475,35 @@ namespace H2ToH3EffectConverter
                         RangeExponent = rangeExponent
                     };
                 }
+                else if (graphType == 3) // Periodic
+                {
+                    float baseMin = ReadFloat(28);
+                    float baseMax = ReadFloat(32);
+                    float baseFrequency = ReadFloat(20);
+                    float basePhase = ReadFloat(24);
+                    int basePeriodFunc = data[2];
+
+                    float rangeMin = ReadFloat(44);
+                    float rangeMax = ReadFloat(48);
+                    float rangeFrequency = ReadFloat(36);
+                    float rangePhase = ReadFloat(40);
+                    int rangePeriodFunc = data[3];
+
+
+                    return new CurvePoints
+                    {
+                        BaseMinP = baseMin,
+                        BaseMaxP = baseMax,
+                        BaseFreq = baseFrequency,
+                        BasePhase = basePhase,
+                        RangeMinP = rangeMin,
+                        RangeMaxP = rangeMax,
+                        RangeFreq = rangeFrequency,
+                        RangePhase = rangePhase,
+                        BasePeriodFunc = basePeriodFunc,
+                        RangePeriodFunc = rangePeriodFunc
+                    };
+                }
                 else
                 {
                     return new CurvePoints { BaseY0 = 0, BaseY1 = 0, BaseY2 = null, BaseY3 = null };

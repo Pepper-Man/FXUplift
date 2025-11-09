@@ -149,6 +149,18 @@ namespace H2ToH3EffectConverter
             public float? RangeMin;
             public float? RangeMax;
             public float? RangeExponent;
+
+            // Periodic data
+            public float BaseMinP;
+            public float BaseMaxP;
+            public float BaseFreq;
+            public float BasePhase;
+            public float? RangeMinP;
+            public float? RangeMaxP;
+            public float? RangeFreq;
+            public float? RangePhase;
+            public int BasePeriodFunc;
+            public int RangePeriodFunc;
         }
 
         public class TagReferenceData

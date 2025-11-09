@@ -468,7 +468,7 @@ namespace H2ToH3EffectConverter
     
         public static void WriteFunctionCurve(TagFile tagFile, Halo2Function func, string fieldString, bool useRange)
         {
-            if (Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Basic && Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Transition && Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Exponent)
+            if (Utils.funcTypeMapping[func.FuncType] == FunctionEditorMasterType.Curve)
             {
                 if (func.CurvePoints.IsLinearKey)
                 {
@@ -561,6 +561,23 @@ namespace H2ToH3EffectConverter
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMin(1, (float)func.CurvePoints.RangeMin);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMax(1, (float)func.CurvePoints.RangeMax);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetExponent(1, (float)func.CurvePoints.RangeExponent);
+                }
+            }
+            else if (Utils.funcTypeMapping[func.FuncType] == FunctionEditorMasterType.Periodic)
+            {
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMin(0, func.CurvePoints.BaseMinP);
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMax(0, func.CurvePoints.BaseMaxP);
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetFrequency(0, func.CurvePoints.BaseFreq);
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetPhase(0, func.CurvePoints.BasePhase);
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetFunctionIndex(0, (byte)func.CurvePoints.BasePeriodFunc);
+
+                if (useRange)
+                {
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMin(1, (float)func.CurvePoints.RangeMinP);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMax(1, (float)func.CurvePoints.RangeMaxP);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetFrequency(1, (float)func.CurvePoints.RangeFreq);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetPhase(1, (float)func.CurvePoints.RangePhase);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetFunctionIndex(1, (byte)func.CurvePoints.RangePeriodFunc);
                 }
             }
         }
