@@ -468,7 +468,7 @@ namespace H2ToH3EffectConverter
     
         public static void WriteFunctionCurve(TagFile tagFile, Halo2Function func, string fieldString, bool useRange)
         {
-            if (Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Basic && Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Transition)
+            if (Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Basic && Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Transition && Utils.funcTypeMapping[func.FuncType] != FunctionEditorMasterType.Exponent)
             {
                 if (func.CurvePoints.IsLinearKey)
                 {
@@ -548,6 +548,19 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 0, rangeY0);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 1, rangeY1);
                     }
+                }
+            }
+            else if (Utils.funcTypeMapping[func.FuncType] == FunctionEditorMasterType.Exponent)
+            {
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMin(0, func.CurvePoints.BaseMin);
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMax(0, func.CurvePoints.BaseMax);
+                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetExponent(0, func.CurvePoints.BaseExponent);
+
+                if (useRange)
+                {
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMin(1, (float)func.CurvePoints.RangeMin);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetAmplitudeMax(1, (float)func.CurvePoints.RangeMax);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetExponent(1, (float)func.CurvePoints.RangeExponent);
                 }
             }
         }

@@ -455,6 +455,26 @@ namespace H2ToH3EffectConverter
                         RangeHandle2Y = rangeHandle2Y
                     };
                 }
+                else if (graphType == 9) // Exponent
+                {
+                    float baseMin = ReadFloat(20);
+                    float baseMax = ReadFloat(24);
+                    float baseExponent = ReadFloat(28);
+
+                    float rangeMin = ReadFloat(32);
+                    float rangeMax = ReadFloat(36);
+                    float rangeExponent = ReadFloat(40);
+
+                    return new CurvePoints
+                    {
+                        BaseMin = baseMin,
+                        BaseMax = baseMax,
+                        BaseExponent = baseExponent,
+                        RangeMin = rangeMin,
+                        RangeMax = rangeMax,
+                        RangeExponent = rangeExponent
+                    };
+                }
                 else
                 {
                     return new CurvePoints { BaseY0 = 0, BaseY1 = 0, BaseY2 = null, BaseY3 = null };

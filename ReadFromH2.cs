@@ -141,6 +141,14 @@ namespace H2ToH3EffectConverter
             public float RangeHandle1Y;
             public float RangeHandle2X;
             public float RangeHandle2Y;
+
+            // Exponent data
+            public float BaseMin;
+            public float BaseMax;
+            public float BaseExponent;
+            public float? RangeMin;
+            public float? RangeMax;
+            public float? RangeExponent;
         }
 
         public class TagReferenceData
