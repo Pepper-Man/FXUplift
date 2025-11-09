@@ -492,16 +492,36 @@ namespace H2ToH3EffectConverter
 
                     return new CurvePoints
                     {
-                        BaseMinP = baseMin,
-                        BaseMaxP = baseMax,
+                        BaseMin = baseMin,
+                        BaseMax = baseMax,
                         BaseFreq = baseFrequency,
                         BasePhase = basePhase,
-                        RangeMinP = rangeMin,
-                        RangeMaxP = rangeMax,
+                        RangeMin = rangeMin,
+                        RangeMax = rangeMax,
                         RangeFreq = rangeFrequency,
                         RangePhase = rangePhase,
-                        BasePeriodFunc = basePeriodFunc,
-                        RangePeriodFunc = rangePeriodFunc
+                        BaseGraphFunc = basePeriodFunc,
+                        RangeGraphFunc = rangePeriodFunc
+                    };
+                }
+                else if (graphType == 2) // Transition
+                {
+                    float baseMin = ReadFloat(20);
+                    float baseMax = ReadFloat(24);
+                    int baseTransFunc = data[2];
+
+                    float rangeMin = ReadFloat(28);
+                    float rangeMax = ReadFloat(32);
+                    int rangeTransFunc = data[3];
+
+                    return new CurvePoints
+                    {
+                        BaseMin = baseMin,
+                        BaseMax = baseMax,
+                        BaseGraphFunc = baseTransFunc,
+                        RangeMin = rangeMin,
+                        RangeMax = rangeMax,
+                        RangeGraphFunc = rangeTransFunc
                     };
                 }
                 else
