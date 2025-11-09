@@ -189,7 +189,8 @@ namespace H2ToH3EffectConverter
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysGrav.BaseVal;
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysGrav.RangeVal;
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysGrav.UseRange;
-                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[pPhysGrav.FuncType];
+                            WriteFunctionCurve(tagFile, pPhysGrav, $"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[0]/Struct:property", pPhysGrav.UseRange);
 
                             // Air Friction
                             ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters")).AddElement();
@@ -201,7 +202,8 @@ namespace H2ToH3EffectConverter
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysAirFric.BaseVal;
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysAirFric.RangeVal;
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysAirFric.UseRange;
-                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[pPhysAirFric.FuncType];
+                            WriteFunctionCurve(tagFile, pPhysAirFric, $"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[1]/Struct:property", pPhysAirFric.UseRange);
 
                             // Rotational Friction
                             ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters")).AddElement();
@@ -213,7 +215,8 @@ namespace H2ToH3EffectConverter
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysRotFric.BaseVal;
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysRotFric.RangeVal;
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysRotFric.UseRange;
-                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+                            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[pPhysRotFric.FuncType];
+                            WriteFunctionCurve(tagFile, pPhysRotFric, $"{emitter}/Struct:particle movement/Block:movements[0]/Block:parameters[2]/Struct:property", pPhysRotFric.UseRange);
 
                             if (pPhysCollFric != null)
                             {
@@ -229,7 +232,8 @@ namespace H2ToH3EffectConverter
                                 ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysCollFric.BaseVal;
                                 ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysCollFric.RangeVal;
                                 ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysCollFric.UseRange;
-                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[pPhysCollFric.FuncType];
+                                WriteFunctionCurve(tagFile, pPhysCollFric, $"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[0]/Struct:property", pPhysCollFric.UseRange);
 
                                 // Collision Elasticity
                                 ((TagFieldBlock)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters")).AddElement();
@@ -241,9 +245,9 @@ namespace H2ToH3EffectConverter
                                 ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.ClampRangeMin = pPhysCollElas.BaseVal;
                                 ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.ClampRangeMax = pPhysCollElas.RangeVal;
                                 ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.IsRanged = pPhysCollElas.UseRange;
-                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.MasterType = 0;
+                                ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[pPhysCollElas.FuncType];
+                                WriteFunctionCurve(tagFile, pPhysCollElas, $"{emitter}/Struct:particle movement/Block:movements[1]/Block:parameters[1]/Struct:property", pPhysCollElas.UseRange);
                             }
-                            
                         }
 
                         // Particle Self-Acceleration

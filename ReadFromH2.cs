@@ -350,6 +350,9 @@ namespace H2ToH3EffectConverter
                                         // Second int is use range, 0=off 1=on
                                         func.UseRange = func.RawData[1] != 0;
 
+                                        // Get curve data
+                                        func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
+
                                         movementFunctions.Add(func);
                                     }
 
