@@ -442,6 +442,7 @@ namespace H2ToH3EffectConverter
                 ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.SetColor(2, particle.Colour.Colour3);
                 ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:color/Custom:Mapping")).Value.SetColor(3, particle.Colour.Colour4);
             }
+            WriteFunctionCurve(tagFile, particle.Colour, "Struct:color", particle.Colour.UseRange);
 
             // Alpha
             ((TagFieldEnum)tagFile.SelectField($"Struct:alpha/CharEnum:Input Variable")).Value = particle.Alpha.InputVar;
@@ -452,6 +453,7 @@ namespace H2ToH3EffectConverter
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.ClampRangeMax = particle.Alpha.RangeVal;
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particle.Alpha.FuncType];
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.IsRanged = particle.Alpha.UseRange;
+            WriteFunctionCurve(tagFile, particle.Alpha, "Struct:alpha", particle.Alpha.UseRange);
 
             // Frame Index
             ((TagFieldEnum)tagFile.SelectField($"Struct:frame index/CharEnum:Input Variable")).Value = particle.FrameIndex.InputVar;
@@ -462,6 +464,7 @@ namespace H2ToH3EffectConverter
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:frame index/Custom:Mapping")).Value.ClampRangeMax = particle.FrameIndex.RangeVal;
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:frame index/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particle.FrameIndex.FuncType];
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:frame index/Custom:Mapping")).Value.IsRanged = particle.FrameIndex.UseRange;
+            WriteFunctionCurve(tagFile, particle.FrameIndex, "Struct:frame index", particle.FrameIndex.UseRange);
 
 
             tagFile.Save();
@@ -609,8 +612,6 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetFunctionIndex(1, (byte)func.CurvePoints.RangeGraphFunc);
                     }
                 }
-
-                
             }
         }
     }
