@@ -498,14 +498,22 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 3, rangeY3);
                     }
                 }
-                else if (func.CurvePoints.IsSpline1)
+                else if (func.CurvePoints.IsSpline1 || func.CurvePoints.IsSpline2)
                 {
-                    // Spline1
+                    // Spline
+
+                    FunctionEditorSegmentType splineType = FunctionEditorSegmentType.Spline;
+
+                    if (func.CurvePoints.IsSpline2)
+                    {
+                        splineType = FunctionEditorSegmentType.Spline2;
+                    }
+
                     GamePoint2d startY = new GamePoint2d(0, func.CurvePoints.BaseY0);
                     GamePoint2d endY = new GamePoint2d(1, func.CurvePoints.BaseY1);
                     GamePoint2d handle1 = new GamePoint2d(func.CurvePoints.BaseHandle1X, func.CurvePoints.BaseHandle1Y);
                     GamePoint2d handle2 = new GamePoint2d(func.CurvePoints.BaseHandle2X, func.CurvePoints.BaseHandle2Y);
-                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetSegmentType(0, 0, FunctionEditorSegmentType.Spline);
+                    ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetSegmentType(0, 0, splineType);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 0, startY);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 1, handle1);
                     ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(0, 3, endY);
@@ -517,7 +525,7 @@ namespace H2ToH3EffectConverter
                         GamePoint2d rangeEndY = new GamePoint2d(1, func.CurvePoints.RangeY1);
                         GamePoint2d rangeHandle1 = new GamePoint2d(func.CurvePoints.RangeHandle1X, func.CurvePoints.RangeHandle1Y);
                         GamePoint2d rangeHandle2 = new GamePoint2d(func.CurvePoints.RangeHandle2X, func.CurvePoints.RangeHandle2Y);
-                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetSegmentType(1, 0, FunctionEditorSegmentType.Spline);
+                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetSegmentType(1, 0, splineType);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 0, rangeStartY);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 1, rangeHandle1);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 2, rangeHandle2);

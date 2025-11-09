@@ -130,6 +130,7 @@ namespace H2ToH3EffectConverter
 
             // Spline data
             public bool IsSpline1;
+            public bool IsSpline2;
 
             public float BaseHandle1X;
             public float BaseHandle1Y;

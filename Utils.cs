@@ -410,7 +410,7 @@ namespace H2ToH3EffectConverter
                         RangeY3 = rangeY3,
                     };
                 }
-                else if (graphType == 7) // Spline 1
+                else if (graphType == 7 || graphType == 10) // Spline 
                 {
                     float baseY0 = ReadFloat(24);
                     float baseY1 = ReadFloat(48);
@@ -426,9 +426,21 @@ namespace H2ToH3EffectConverter
                     float rangeHandle2X = ReadFloat(84);
                     float rangeHandle2Y = ReadFloat(88);
 
+                    bool spline1 = false;
+                    bool spline2 = false;
+                    if (graphType == 7)
+                    {
+                        spline1 = true;
+                    }
+                    else
+                    {
+                        spline2 = true;
+                    }
+
                     return new CurvePoints
                     {
-                        IsSpline1 = true,
+                        IsSpline1 = spline1,
+                        IsSpline2 = spline2,
                         BaseY0 = baseY0,
                         BaseY1 = baseY1,
                         BaseHandle1X = baseHandle1X,
