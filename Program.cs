@@ -93,14 +93,14 @@ namespace H2ToH3EffectConverter
 
             int i = 0;
             bool debugOutput = false;
-            int numToSkip = 940;
+            int numToSkip = 1160;
             foreach (string h2EffectPath in allEffects.Skip(numToSkip)) // DEBUG, REMEMBER TO REMOVE
             {
                 string outputFolder = Utils.H2ToH3Path(h2EffectPath);
                 string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
                 ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek, debugOutput);
                 WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
-                Console.WriteLine($"Converted: {i + numToSkip}/{allEffects.Length}");
+                Console.WriteLine($"Converted: {i + numToSkip + 1}/{allEffects.Length} effect tags");
                 i++;
             }
 

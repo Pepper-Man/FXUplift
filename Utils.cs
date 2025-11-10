@@ -194,8 +194,8 @@ namespace H2ToH3EffectConverter
             string[] argumentsArray = new string[]
             {
                 "export-tag-to-xml",
-                h2TagPath,
-                xmlOutPath
+                "\"" + h2TagPath + "\"",
+                "\"" + xmlOutPath + "\""
             };
 
             string arguments = string.Join(" ", argumentsArray);
