@@ -44,7 +44,6 @@ namespace H2ToH3EffectConverter
         static void SingleTagConversion()
         {
             string h2EffectPath = "";
-            string h3ek = "";
             
             // Get H2 effect tag path
             while (true)
@@ -67,28 +66,8 @@ namespace H2ToH3EffectConverter
                     Console.WriteLine("File does not exist! Please try again.\n");
                 }
             }
-            
-            // Get H3EK directory
-            while(true)
-            {
-                Console.WriteLine("Enter path to your \"H3EK\" folder:");
-                h3ek = Console.ReadLine().Replace("\"", "");
-                if (Directory.Exists(h3ek))
-                {
-                    if (new DirectoryInfo(h3ek).Name == "H3EK")
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        Console.WriteLine("This doesn't appear to be the \"H3EK\" folder path. Please try again.\n");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Folder does not exist! Please try again.\n");
-                }
-            }
+
+            string h3ek = Utils.GetEditingKitFolder("H3EK");
 
             string h2ek = Utils.GetH2EKPath(h2EffectPath);
             string outputFolder = Utils.H2ToH3Path(h2EffectPath);
@@ -99,7 +78,8 @@ namespace H2ToH3EffectConverter
 
         static void BulkTagConversion()
         {
-            throw new NotImplementedException();
+            string h2ek = Utils.GetEditingKitFolder("H2EK");
+            string h3ek = Utils.GetEditingKitFolder("H3EK");
         }
     }
 }

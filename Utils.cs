@@ -536,5 +536,33 @@ namespace H2ToH3EffectConverter
             string relativeH2Path = h2EffectPath.Split(new string[] { "H2EK\\tags" }, StringSplitOptions.None)[1].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             return Path.Combine("halo_2\\", Path.GetDirectoryName(relativeH2Path), Path.GetFileNameWithoutExtension(relativeH2Path));
         }
+
+        public static string GetEditingKitFolder(string ek)
+        {
+            string editingKit = "";
+
+            while (true)
+            {
+                Console.WriteLine($"Enter path to your \"{ek}\" folder:");
+                editingKit = Console.ReadLine().Replace("\"", "");
+                if (Directory.Exists(editingKit))
+                {
+                    if (new DirectoryInfo(editingKit).Name == ek)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"This doesn't appear to be the \"{ek}\" folder path. Please try again.\n");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Folder does not exist! Please try again.\n");
+                }
+            }
+
+            return editingKit;
+        }
     }
 }
