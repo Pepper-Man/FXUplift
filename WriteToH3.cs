@@ -173,7 +173,7 @@ namespace H2ToH3EffectConverter
                         // Particle Physics
                         ParticlePhysics pPhysics = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].ParticlePhys;
 
-                        if (pPhysics != null)
+                        if (pPhysics != null && pPhysics.Flags != 0)
                         {
                             Halo2Function pPhysGrav = pPhysics.Gravity;
                             Halo2Function pPhysAirFric = pPhysics.AirFriction;
