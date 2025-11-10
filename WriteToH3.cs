@@ -28,6 +28,10 @@ namespace H2ToH3EffectConverter
 
             // MARKERS ----------------------------------------------------------------------------------------
             int markerCount = effect.Markers.Count();
+            if (markerCount > 8)
+            {
+                markerCount = 8;
+            }
             for (int markerIndex = 0; markerIndex < markerCount; markerIndex++)
             {
                 ((TagFieldBlock)tagFile.SelectField("Block:locations")).AddElement();
@@ -432,7 +436,10 @@ namespace H2ToH3EffectConverter
             ((TagFieldBlock)tagFile.SelectField($"Struct:actual shader?/Block:parameters")).AddElement();
             ((TagFieldElementStringID)tagFile.SelectField($"Struct:actual shader?/Block:parameters[0]/StringId:parameter name")).Data = "base_map";
             ((TagFieldEnum)tagFile.SelectField($"Struct:actual shader?/Block:parameters[0]/LongEnum:parameter type")).Value = 0;
-            ((TagFieldReference)tagFile.SelectField($"Struct:actual shader?/Block:parameters[0]/Reference:bitmap")).Path = TagPath.FromPathAndExtension(Path.Combine("halo_2\\", particle.Bitmap.Path), "bitmap");
+            if (particle.Bitmap != null)
+            {
+                ((TagFieldReference)tagFile.SelectField($"Struct:actual shader?/Block:parameters[0]/Reference:bitmap")).Path = TagPath.FromPathAndExtension(Path.Combine("halo_2\\", particle.Bitmap.Path), "bitmap");
+            }
             int alphaMode = Utils.shaderTemplateBlendMode[Path.GetFileName(particle.ShaderTemplate)];
             if (alphaMode == 50)
             {
