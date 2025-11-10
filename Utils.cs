@@ -530,5 +530,11 @@ namespace H2ToH3EffectConverter
                 }    
             }
         }
+    
+        public static string H2ToH3Path(string h2EffectPath)
+        {
+            string relativeH2Path = h2EffectPath.Split(new string[] { "H2EK\\tags" }, StringSplitOptions.None)[1].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return Path.Combine("halo_2\\", Path.GetDirectoryName(relativeH2Path), Path.GetFileNameWithoutExtension(relativeH2Path));
+        }
     }
 }
