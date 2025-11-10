@@ -200,6 +200,7 @@ namespace H2ToH3EffectConverter
                 List<string> effectMarkers = new List<string>();
 
                 // MARKERS
+                Console.WriteLine($"\nEffect: {xmlPath}");
                 Console.WriteLine("MARKERS:");
                 foreach (XmlNode markerElement in effectFile.SelectNodes("//block[@name='locations']/element"))
                 {
@@ -236,7 +237,7 @@ namespace H2ToH3EffectConverter
                         part.Environment = int.Parse(partElement.SelectNodes("./field[@name='create in']")[0].InnerText.Trim().Substring(0, 1));
                         part.Mode = int.Parse(partElement.SelectNodes("./field[@name='create in']")[1].InnerText.Trim().Substring(0, 1));
                         part.Location = int.Parse(partElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
-                        part.Flags = uint.Parse(partElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim());
+                        part.Flags = uint.Parse(partElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim().Split('\n')[0]);
                         part.TagRef = new TagReferenceData
                         {
                             Path = partElement.SelectSingleNode("./tag_reference[@name='type']").InnerText.Trim(),
@@ -262,21 +263,34 @@ namespace H2ToH3EffectConverter
                         ParticleSystem particleSystem = new ParticleSystem();
                         Console.WriteLine($"\n\tREADING PARTICLE SYSTEM {particleSysElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(particleSysElement)}:");
 
-                        particleSystem.ParticleRef = new TagReferenceData
+                        // Need to check if particle reference is actually a particle mode, in which case we just have to ignore it
+                        // And if it is a "normal" particle, that it actually exists
+                        string particleRefType = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").Attributes["type"].Value;
+                        if (particleRefType != "PRTM")
                         {
-                            Path = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").InnerText.Trim(),
-                            Extension = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").Attributes["type"].Value
-                        };
-                        string particleH2TagPath = Path.ChangeExtension(Path.Combine(h2ekPath + "\\tags\\" + particleSystem.ParticleRef.Path), "particle");
-                        string particleH3TagPath = Path.ChangeExtension(Path.Combine(h3ekPath + "\\tags\\halo_2\\" + particleSystem.ParticleRef.Path), "particle");
+                            particleSystem.ParticleRef = new TagReferenceData
+                            {
+                                Path = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").InnerText.Trim(),
+                                Extension = particleRefType
+                            };
+                            string particleH2TagPath = Path.ChangeExtension(Path.Combine(h2ekPath + "\\tags\\" + particleSystem.ParticleRef.Path), "particle");
+                            string particleH3TagPath = Path.ChangeExtension(Path.Combine(h3ekPath + "\\tags\\halo_2\\" + particleSystem.ParticleRef.Path), "particle");
 
-                        string particleXmlPath = Utils.ExtractTagXML(particleH2TagPath, "particle", h2ekPath);
-                        particleSystem.Particle = GetParticleDataFromXML(particleXmlPath, h2ekPath);
+                            if (File.Exists(particleH2TagPath))
+                            {
+                                string particleXmlPath = Utils.ExtractTagXML(particleH2TagPath, "particle", h2ekPath);
+                                particleSystem.Particle = GetParticleDataFromXML(particleXmlPath, h2ekPath);
 
-                        // Create particle tag from H2 data if it doesn't exist in H3 yet
-                        if (File.Exists(particleH3TagPath))
-                        {
-                            particleSystem.Particle.AlreadyExists = true;
+                                // Create particle tag from H2 data if it doesn't exist in H3 yet
+                                if (File.Exists(particleH3TagPath))
+                                {
+                                    particleSystem.Particle.AlreadyExists = true;
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Missing!!!");
+                            }
                         }
 
                         particleSystem.Location = int.Parse(particleSysElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
@@ -284,8 +298,8 @@ namespace H2ToH3EffectConverter
                         particleSystem.Environment = int.Parse(particleSysElement.SelectNodes("./field[@name='environment']")[0].InnerText.Trim().Substring(0, 1));
                         particleSystem.Mode = int.Parse(particleSysElement.SelectNodes("./field[@name='disposition']")[0].InnerText.Trim().Substring(0, 1));
                         particleSystem.CameraMode = int.Parse(particleSysElement.SelectNodes("./field[@name='camera mode']")[0].InnerText.Trim().Substring(0, 1));
-                        particleSystem.SortBias = int.Parse(particleSysElement.SelectNodes("./field[@name='sort bias']")[0].InnerText.Trim().Substring(0, 1));
-                        particleSystem.Flags = uint.Parse(particleSysElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim());
+                        particleSystem.SortBias = int.Parse(particleSysElement.SelectNodes("./field[@name='sort bias']")[0].InnerText.Trim());
+                        particleSystem.Flags = uint.Parse(particleSysElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim().Split('\n')[0]);
                         particleSystem.LodIn = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD in distance']").InnerText.Trim());
                         particleSystem.LodFInDelta = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD feather in delta']").InnerText.Trim());
                         particleSystem.LodOut = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD out distance']").InnerText.Trim());
@@ -320,7 +334,7 @@ namespace H2ToH3EffectConverter
                                     XmlDocument pPhysFile = new XmlDocument();
                                     pPhysFile.Load(pPhysReader);
 
-                                    pPhysics.Flags = uint.Parse(pPhysFile.SelectSingleNode("//field[@name='flags']").InnerText.Trim().Substring(0, 1));
+                                    pPhysics.Flags = uint.Parse(pPhysFile.SelectSingleNode("//field[@name='flags']").InnerText.Trim().Split('\n')[0]);
 
                                     XmlNodeList movementFunctionGroups = pPhysFile.SelectNodes("//block[@name='movements']/element/block[@name='parameters']/element/field[@name='Input Variable']");
                                     List<Halo2Function> movementFunctions = new List<Halo2Function>();
@@ -537,13 +551,27 @@ namespace H2ToH3EffectConverter
                 XmlNodeList shaderParams = particleFile.SelectNodes("//block[@name='shader parameters']/element");
                 foreach (XmlNode parameter in shaderParams)
                 {
-                    if (parameter.SelectSingleNode("./field[@name='name']").InnerText.Trim() == "alpha_map_texture")
+                    if (particle.ShaderTemplate.Contains("particle_alpha_blend_distortion"))
                     {
-                        particle.Bitmap = new TagReferenceData
+                        if (parameter.SelectSingleNode("./field[@name='name']").InnerText.Trim() == "bump_map")
                         {
-                            Path = parameter.SelectSingleNode("./tag_reference[@name='bitmap']").InnerText.Trim(),
-                            Extension = "bitm"
-                        };
+                            particle.Bitmap = new TagReferenceData
+                            {
+                                Path = parameter.SelectSingleNode("./tag_reference[@name='bitmap']").InnerText.Trim(),
+                                Extension = "bitm"
+                            };
+                        }
+                    }
+                    else
+                    {
+                        if (parameter.SelectSingleNode("./field[@name='name']").InnerText.Trim() == "alpha_map_texture")
+                        {
+                            particle.Bitmap = new TagReferenceData
+                            {
+                                Path = parameter.SelectSingleNode("./tag_reference[@name='bitmap']").InnerText.Trim(),
+                                Extension = "bitm"
+                            };
+                        }
                     }
                 }
 
