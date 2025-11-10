@@ -53,7 +53,10 @@ namespace H2ToH3EffectConverter
                     ((TagFieldEnum)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/ShortEnum:violence mode")).Value = effect.Events[eventIndex].Parts[partsIndex].Mode;
                     ((TagFieldBlockIndex)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/ShortBlockIndex:location")).Value = effect.Events[eventIndex].Parts[partsIndex].Location;
                     ((TagFieldFlags)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/WordFlags:flags")).RawValue= effect.Events[eventIndex].Parts[partsIndex].Flags;
-                    ((TagFieldReference)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/Reference:type")).Path = TagPath.FromPathAndType(effect.Events[eventIndex].Parts[partsIndex].TagRef.Path, effect.Events[eventIndex].Parts[partsIndex].TagRef.Extension);
+                    if (effect.Events[eventIndex].Parts[partsIndex].TagRef != null)
+                    {
+                        ((TagFieldReference)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/Reference:type")).Path = TagPath.FromPathAndType(effect.Events[eventIndex].Parts[partsIndex].TagRef.Path, effect.Events[eventIndex].Parts[partsIndex].TagRef.Extension);
+                    }
                     ((TagFieldElementArraySingle)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/RealBounds:velocity bounds")).Data = effect.Events[eventIndex].Parts[partsIndex].VelocityBounds;
                     ((TagFieldElementSingle)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/Angle:velocity cone angle")).Data = effect.Events[eventIndex].Parts[partsIndex].VelocityConeAngle;
                     ((TagFieldElementArraySingle)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/AngleBounds:angular velocity bounds")).Data = effect.Events[eventIndex].Parts[partsIndex].AngularVelocityBounds;
@@ -335,11 +338,11 @@ namespace H2ToH3EffectConverter
                         ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle tint/CharEnum:Output Modifier Input")).Value = particleTint.OutputModInput;
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.IsRanged = particleTint.UseRange;
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particleTint.FuncType];
-                        try
+                        if (particleTint.Colour1 != null)
                         {
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(0, particleTint.Colour1);
                         }
-                        catch (NullReferenceException)
+                        else
                         {
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(0, GameColor.FromRgb(1, 1, 1));
                         }

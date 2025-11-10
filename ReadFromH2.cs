@@ -238,11 +238,15 @@ namespace H2ToH3EffectConverter
                         part.Mode = int.Parse(partElement.SelectNodes("./field[@name='create in']")[1].InnerText.Trim().Substring(0, 1));
                         part.Location = int.Parse(partElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
                         part.Flags = uint.Parse(partElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim().Split('\n')[0]);
-                        part.TagRef = new TagReferenceData
+                        string path = partElement.SelectSingleNode("./tag_reference[@name='type']").InnerText.Trim();
+                        if (path != "" && path != null)
                         {
-                            Path = partElement.SelectSingleNode("./tag_reference[@name='type']").InnerText.Trim(),
-                            Extension = partElement.SelectSingleNode("./tag_reference[@name='type']").Attributes["type"].Value
-                        };
+                            part.TagRef = new TagReferenceData
+                            {
+                                Path = partElement.SelectSingleNode("./tag_reference[@name='type']").InnerText.Trim(),
+                                Extension = partElement.SelectSingleNode("./tag_reference[@name='type']").Attributes["type"].Value
+                            };
+                        }
                         part.VelocityBounds = partElement.SelectSingleNode("./field[@name='velocity bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
                         part.VelocityConeAngle = float.Parse(partElement.SelectSingleNode("./field[@name='velocity cone angle']").InnerText.Trim());
                         part.AngularVelocityBounds = partElement.SelectSingleNode("./field[@name='angular velocity bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
@@ -265,14 +269,16 @@ namespace H2ToH3EffectConverter
 
                         // Need to check if particle reference is actually a particle mode, in which case we just have to ignore it
                         // And if it is a "normal" particle, that it actually exists
-                        string particleRefType = "";
-                        try
+                        var particleNode = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']");
+                        string particleRefType = null;
+                        if (particleNode != null)
                         {
-                            particleRefType = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").Attributes["type"].Value;
-                        }
-                        catch (NullReferenceException)
-                        {
-                            particleRefType = null;
+                            var typeAttribute = particleNode.Attributes["type"];
+
+                            if (typeAttribute != null)
+                            {
+                                particleRefType = typeAttribute.Value;
+                            }
                         }
                         
                         if (particleRefType != null)
