@@ -78,8 +78,27 @@ namespace H2ToH3EffectConverter
 
         static void BulkTagConversion()
         {
+            Console.WriteLine("The bulk option will convert ALL (missing) effect files within \"H2EK\\tags\\effects\" and may take a while.\nAre you sure you want to proceed? (Y/N):");
+            string input = Console.ReadLine();
+            if (input.ToLower() != "y")
+            {
+                return;
+            }
+
             string h2ek = Utils.GetEditingKitFolder("H2EK");
             string h3ek = Utils.GetEditingKitFolder("H3EK");
+
+            string[] allEffects = Directory.GetFiles(Path.Combine(h2ek, "tags\\effects"), "*.effect", SearchOption.AllDirectories);
+
+            foreach (string h2EffectPath in allEffects)
+            {
+                string outputFolder = Utils.H2ToH3Path(h2EffectPath);
+                string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
+                ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek);
+                WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
+            }
+
+            Console.WriteLine("Done all!");
         }
     }
 }
