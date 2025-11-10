@@ -334,62 +334,70 @@ namespace H2ToH3EffectConverter
                                 };
 
                                 string physicsRefFullPath = Path.ChangeExtension(Path.Combine(h2ekPath, "tags", emitter.PhysicsRef.Path), "particle_physics");
-                                string particlePhysXml = Utils.ExtractTagXML(physicsRefFullPath, "particle physics", h2ekPath);
 
-                                string pPhysXmlData = Utils.CleanXML(particlePhysXml);
-                                using (XmlReader pPhysReader = XmlReader.Create(new StringReader(pPhysXmlData), settings))
+                                if (File.Exists(physicsRefFullPath))
                                 {
-                                    XmlDocument pPhysFile = new XmlDocument();
-                                    pPhysFile.Load(pPhysReader);
+                                    string particlePhysXml = Utils.ExtractTagXML(physicsRefFullPath, "particle physics", h2ekPath);
 
-                                    pPhysics.Flags = uint.Parse(pPhysFile.SelectSingleNode("//field[@name='flags']").InnerText.Trim().Split('\n')[0]);
-
-                                    XmlNodeList movementFunctionGroups = pPhysFile.SelectNodes("//block[@name='movements']/element/block[@name='parameters']/element/field[@name='Input Variable']");
-                                    List<Halo2Function> movementFunctions = new List<Halo2Function>();
-                                    
-                                    foreach (XmlNode inputVarField in movementFunctionGroups)
+                                    string pPhysXmlData = Utils.CleanXML(particlePhysXml);
+                                    using (XmlReader pPhysReader = XmlReader.Create(new StringReader(pPhysXmlData), settings))
                                     {
-                                        Halo2Function func = new Halo2Function();
+                                        XmlDocument pPhysFile = new XmlDocument();
+                                        pPhysFile.Load(pPhysReader);
 
-                                        func.InputVar = Utils.funcInputMapping[inputVarField.InnerText.Trim()];
-                                        func.RangeVar = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Range Variable']")?.InnerText.Trim()];
-                                        func.OutputMod = int.Parse(inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier']")?.InnerText.Trim().Substring(0, 1));
-                                        func.OutputModInput = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier Input']")?.InnerText.Trim()];
+                                        pPhysics.Flags = uint.Parse(pPhysFile.SelectSingleNode("//field[@name='flags']").InnerText.Trim().Split('\n')[0]);
 
-                                        // Read data block
-                                        XmlNode dataBlock = inputVarField.SelectSingleNode("following-sibling::block[@name='data']");
-                                        func.RawData = dataBlock.SelectNodes("./element/field[@name='Value']").Cast<XmlNode>().Select(n => int.Parse(n.InnerText.Trim())).ToArray();
+                                        XmlNodeList movementFunctionGroups = pPhysFile.SelectNodes("//block[@name='movements']/element/block[@name='parameters']/element/field[@name='Input Variable']");
+                                        List<Halo2Function> movementFunctions = new List<Halo2Function>();
 
-                                        // Convert raw data to signed bytes
-                                        sbyte[] signed = func.RawData.Select(i => (sbyte)i).ToArray();
-                                        // Then read some values
-                                        func.BaseVal = Utils.ReadHalo2PackedFloat(signed, 6);
-                                        func.RangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
+                                        foreach (XmlNode inputVarField in movementFunctionGroups)
+                                        {
+                                            Halo2Function func = new Halo2Function();
 
-                                        // First integer is function type index
-                                        func.FuncType = func.RawData[0];
+                                            func.InputVar = Utils.funcInputMapping[inputVarField.InnerText.Trim()];
+                                            func.RangeVar = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Range Variable']")?.InnerText.Trim()];
+                                            func.OutputMod = int.Parse(inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier']")?.InnerText.Trim().Substring(0, 1));
+                                            func.OutputModInput = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier Input']")?.InnerText.Trim()];
 
-                                        // Second int is use range, 0=off 1=on
-                                        func.UseRange = func.RawData[1] != 0;
+                                            // Read data block
+                                            XmlNode dataBlock = inputVarField.SelectSingleNode("following-sibling::block[@name='data']");
+                                            func.RawData = dataBlock.SelectNodes("./element/field[@name='Value']").Cast<XmlNode>().Select(n => int.Parse(n.InnerText.Trim())).ToArray();
 
-                                        // Get curve data
-                                        func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
+                                            // Convert raw data to signed bytes
+                                            sbyte[] signed = func.RawData.Select(i => (sbyte)i).ToArray();
+                                            // Then read some values
+                                            func.BaseVal = Utils.ReadHalo2PackedFloat(signed, 6);
+                                            func.RangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
 
-                                        movementFunctions.Add(func);
+                                            // First integer is function type index
+                                            func.FuncType = func.RawData[0];
+
+                                            // Second int is use range, 0=off 1=on
+                                            func.UseRange = func.RawData[1] != 0;
+
+                                            // Get curve data
+                                            func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
+
+                                            movementFunctions.Add(func);
+                                        }
+
+                                        pPhysics.Gravity = movementFunctions[0];
+                                        pPhysics.AirFriction = movementFunctions[1];
+                                        pPhysics.RotFriction = movementFunctions[2];
+
+                                        if (movementFunctions.Count >= 5)
+                                        {
+                                            pPhysics.CollFriction = movementFunctions[3];
+                                            pPhysics.CollElasticity = movementFunctions[4];
+                                        }
                                     }
 
-                                    pPhysics.Gravity = movementFunctions[0];
-                                    pPhysics.AirFriction = movementFunctions[1];
-                                    pPhysics.RotFriction = movementFunctions[2];
-
-                                    if (movementFunctions.Count >= 5)
-                                    {
-                                        pPhysics.CollFriction = movementFunctions[3];
-                                        pPhysics.CollElasticity = movementFunctions[4];
-                                    }
+                                    emitter.ParticlePhys = pPhysics;
                                 }
-
-                                emitter.ParticlePhys = pPhysics;
+                                else
+                                {
+                                    emitter.ParticlePhys = null;
+                                }
                             }
 
                             XmlNodeList functionFieldGroups = emitterElement.SelectNodes("./field[@name='Input Variable']");
