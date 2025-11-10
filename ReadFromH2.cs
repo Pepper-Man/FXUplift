@@ -181,7 +181,7 @@ namespace H2ToH3EffectConverter
             public Halo2Function FrameIndex { get; set; }
         }
 
-        public static Effect GetEffectDataFromXML(string xmlPath, string h2ekPath, string h3ekPath)
+        public static Effect GetEffectDataFromXML(string xmlPath, string h2ekPath, string h3ekPath, bool debugOutput)
         {
             Effect effect = new Effect();
 
@@ -250,7 +250,7 @@ namespace H2ToH3EffectConverter
                         part.AScalesVals = uint.Parse(partElement.SelectSingleNode("./field[@name='A scales values']").InnerText.Trim());
                         part.BScalesVals = uint.Parse(partElement.SelectSingleNode("./field[@name='B scales values']").InnerText.Trim());
 
-                        Utils.PrintObject(part, 1);
+                        if (debugOutput) { Utils.PrintObject(part, 1); };
 
                         parts.Add(part);
                     }
@@ -265,26 +265,38 @@ namespace H2ToH3EffectConverter
 
                         // Need to check if particle reference is actually a particle mode, in which case we just have to ignore it
                         // And if it is a "normal" particle, that it actually exists
-                        string particleRefType = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").Attributes["type"].Value;
-                        if (particleRefType != "PRTM")
+                        string particleRefType = "";
+                        try
                         {
-                            particleSystem.ParticleRef = new TagReferenceData
+                            particleRefType = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").Attributes["type"].Value;
+                        }
+                        catch (NullReferenceException)
+                        {
+                            particleRefType = null;
+                        }
+                        
+                        if (particleRefType != null)
+                        {
+                            if (particleRefType != "PRTM")
                             {
-                                Path = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").InnerText.Trim(),
-                                Extension = particleRefType
-                            };
-                            string particleH2TagPath = Path.ChangeExtension(Path.Combine(h2ekPath + "\\tags\\" + particleSystem.ParticleRef.Path), "particle");
-                            string particleH3TagPath = Path.ChangeExtension(Path.Combine(h3ekPath + "\\tags\\halo_2\\" + particleSystem.ParticleRef.Path), "particle");
-
-                            if (File.Exists(particleH2TagPath))
-                            {
-                                string particleXmlPath = Utils.ExtractTagXML(particleH2TagPath, "particle", h2ekPath);
-                                particleSystem.Particle = GetParticleDataFromXML(particleXmlPath, h2ekPath);
-
-                                // Create particle tag from H2 data if it doesn't exist in H3 yet
-                                if (File.Exists(particleH3TagPath))
+                                particleSystem.ParticleRef = new TagReferenceData
                                 {
-                                    particleSystem.Particle.AlreadyExists = true;
+                                    Path = particleSysElement.SelectSingleNode("./tag_reference[@name='particle']").InnerText.Trim(),
+                                    Extension = particleRefType
+                                };
+                                string particleH2TagPath = Path.ChangeExtension(Path.Combine(h2ekPath + "\\tags\\" + particleSystem.ParticleRef.Path), "particle");
+                                string particleH3TagPath = Path.ChangeExtension(Path.Combine(h3ekPath + "\\tags\\halo_2\\" + particleSystem.ParticleRef.Path), "particle");
+
+                                if (File.Exists(particleH2TagPath))
+                                {
+                                    string particleXmlPath = Utils.ExtractTagXML(particleH2TagPath, "particle", h2ekPath);
+                                    particleSystem.Particle = GetParticleDataFromXML(particleXmlPath, h2ekPath);
+
+                                    // Create particle tag from H2 data if it doesn't exist in H3 yet
+                                    if (File.Exists(particleH3TagPath))
+                                    {
+                                        particleSystem.Particle.AlreadyExists = true;
+                                    }
                                 }
                             }
                         }
@@ -301,7 +313,7 @@ namespace H2ToH3EffectConverter
                         particleSystem.LodOut = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD out distance']").InnerText.Trim());
                         particleSystem.LodFOutDelta = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD feather out delta']").InnerText.Trim());
 
-                        Utils.PrintObject(particleSystem, 1);
+                        if (debugOutput) { Utils.PrintObject(particleSystem, 1); };
 
                         // EMITTERS
                         List<Emitter> emitters = new List<Emitter>();
@@ -501,7 +513,7 @@ namespace H2ToH3EffectConverter
                             emitter.TransOffset = emitterElement.SelectSingleNode("./field[@name='translational offset']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
                             emitter.RelativeDir = emitterElement.SelectSingleNode("./field[@name='relative direction']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
 
-                            Utils.PrintObject(emitter, 2);
+                            if (debugOutput) { Utils.PrintObject(emitter, 2); };
 
                             emitters.Add(emitter);
                         }
