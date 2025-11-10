@@ -380,7 +380,15 @@ namespace H2ToH3EffectConverter
         {
             TagPath outputTagPath = TagPath.FromPathAndExtension(outputPath, "particle");
             TagFile tagFile = new TagFile();
-            tagFile.New(outputTagPath);
+            try
+            {
+                tagFile.New(outputTagPath);
+            }
+            catch
+            {
+                return; // Duplicate entry
+            }
+            
 
             uint mainFlagsVal = 0, appearFlagsVal = 0, animFlagsVal = 0;
             if (particle.Flags[0] != "0")

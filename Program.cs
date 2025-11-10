@@ -90,12 +90,15 @@ namespace H2ToH3EffectConverter
 
             string[] allEffects = Directory.GetFiles(Path.Combine(h2ek, "tags\\effects"), "*.effect", SearchOption.AllDirectories);
 
+            int i = 0;
             foreach (string h2EffectPath in allEffects)
             {
                 string outputFolder = Utils.H2ToH3Path(h2EffectPath);
                 string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
                 ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek);
                 WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
+                Console.WriteLine($"Converted: {i}/{allEffects.Length}");
+                i++;
             }
 
             Console.WriteLine("Done all!");

@@ -287,10 +287,6 @@ namespace H2ToH3EffectConverter
                                     particleSystem.Particle.AlreadyExists = true;
                                 }
                             }
-                            else
-                            {
-                                Console.WriteLine("Missing!!!");
-                            }
                         }
 
                         particleSystem.Location = int.Parse(particleSysElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
