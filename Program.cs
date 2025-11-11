@@ -72,7 +72,7 @@ namespace H2ToH3EffectConverter
             string h2ek = Utils.GetH2EKPath(h2EffectPath);
             string outputFolder = Utils.H2ToH3Path(h2EffectPath);
             string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
-            bool debugOutput = false;
+            bool debugOutput = true;
             ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek, debugOutput);
             WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
         }
@@ -89,18 +89,17 @@ namespace H2ToH3EffectConverter
             string h2ek = Utils.GetEditingKitFolder("H2EK");
             string h3ek = Utils.GetEditingKitFolder("H3EK");
 
-            string[] allEffects = Directory.GetFiles(Path.Combine(h2ek, "tags\\effects"), "*.effect", SearchOption.AllDirectories);
+            string[] allEffects = Directory.GetFiles(Path.Combine(h2ek, "tags"), "*.effect", SearchOption.AllDirectories);
 
             int i = 0;
-            bool debugOutput = false;
-            int numToSkip = 1160;
-            foreach (string h2EffectPath in allEffects.Skip(numToSkip)) // DEBUG, REMEMBER TO REMOVE
+            bool debugOutput = true;
+            foreach (string h2EffectPath in allEffects)
             {
                 string outputFolder = Utils.H2ToH3Path(h2EffectPath);
                 string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
                 ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek, debugOutput);
                 WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
-                Console.WriteLine($"Converted: {i + numToSkip + 1}/{allEffects.Length} effect tags");
+                Console.WriteLine($"Converted: {i + 1}/{allEffects.Length} effect tags");
                 i++;
             }
 
