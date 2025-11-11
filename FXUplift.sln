@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36511.14 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "H2ToH3EffectConverter", "H2ToH3EffectConverter.csproj", "{C3EBBC8C-811A-4F63-A36F-935FF104471C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FXUplift", "FXUplift.csproj", "{C3EBBC8C-811A-4F63-A36F-935FF104471C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

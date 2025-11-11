@@ -1,11 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net4.8</TargetFramework>
     <HighEntropyVA>false</HighEntropyVA>
     <AssemblyName>FXUplift</AssemblyName>
+    <ApplicationIcon>128.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="128.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="managedblam">
