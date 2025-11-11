@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net4.8</TargetFramework>
     <HighEntropyVA>false</HighEntropyVA>
+    <AssemblyName>FXUplift</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
