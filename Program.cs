@@ -8,7 +8,7 @@ namespace H2ToH3EffectConverter
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Halo 2 to Halo 3 Effect Converter\n\n");
+            Console.WriteLine("FXUplift: A Halo 2 to Halo 3 effect converter\n\n");
 
             while (true)
             {
@@ -79,7 +79,7 @@ namespace H2ToH3EffectConverter
 
         static void BulkTagConversion()
         {
-            Console.WriteLine("The bulk option will convert ALL (missing) effect files within \"H2EK\\tags\\effects\" and may take a while.\nAre you sure you want to proceed? (Y/N):");
+            Console.WriteLine("The bulk option will convert ALL effect tags within \"H2EK\\tags\" and will take a while.\nAre you sure you want to proceed? (Y/N):");
             string input = Console.ReadLine();
             if (input.ToLower() != "y")
             {
