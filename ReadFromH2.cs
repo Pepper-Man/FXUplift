@@ -10,6 +10,17 @@ namespace H2ToH3EffectConverter
 {
     internal class ReadFromH2
     {
+        static void DumpFloats(sbyte[] data, int from, int to)
+        {
+            Console.WriteLine($"length = {data.Length}, type = {data[0]}");
+            for (int i = from; i + 3 < data.Length && i <= to; i += 4)
+            {
+                byte[] raw = { (byte)data[i], (byte)data[i + 1], (byte)data[i + 2], (byte)data[i + 3] };
+                Console.WriteLine($"{i,3}: {BitConverter.ToSingle(raw, 0),12:G9}   {BitConverter.ToString(raw)}");
+            }
+        }
+
+
         public class Effect
         {
             public string[] Markers { get; set; }
@@ -439,6 +450,11 @@ namespace H2ToH3EffectConverter
                                 func.UseRange = func.RawData[1] != 0;
 
                                 // Get curve data
+                                if (signed[0] == 7 || signed[0] == 10)
+                                {
+                                    DumpFloats(signed, 0, 115);
+                                }
+                                
                                 func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
 
                                 // Function might hold colour rather than float values

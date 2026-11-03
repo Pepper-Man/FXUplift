@@ -336,6 +336,33 @@ namespace H2ToH3EffectConverter
 
         public static class HaloCurveParser
         {
+            // Spline blocks also store the evaluated cubic f(x) = a x^3 + b x^2 + c x + y0.
+            // Handles are only the editor's view of it, and can be corrupt.
+            private static void RepairSplineHandles(float y0, float y1, float a, float b, float c, ref float h1x, ref float h1y, ref float h2x, ref float h2y)
+            {
+                float startSlope = c;
+                float endSlope = 3 * a + 2 * b + c;
+
+                bool Close(float x, float y)
+                {
+                    return Math.Abs(x - y) <= 1e-3f * Math.Max(1f, Math.Abs(y));
+                }
+
+                bool h1Ok = h1x > 0f && h1x < 1f && Close((h1y - y0) / h1x, startSlope);
+                if (!h1Ok)
+                {
+                    h1x = 1f / 3f;
+                    h1y = y0 + startSlope * h1x;
+                }
+
+                bool h2Ok = h2x > h1x && h2x < 0.999f && Close((y1 - h2y) / (1f - h2x), endSlope);
+                if (!h2Ok)
+                {
+                    h2x = h1x < 0.5f ? 2f / 3f : (1f + h1x) / 2f;
+                    h2y = y1 - endSlope * (1f - h2x);
+                }
+            }
+
             public static CurvePoints ParseCurve(sbyte[] data)
             {
                 // Helper to decode float from 4 bytes starting at an index
@@ -419,6 +446,12 @@ namespace H2ToH3EffectConverter
                     float rangeHandle1Y = ReadFloat(80);
                     float rangeHandle2X = ReadFloat(84);
                     float rangeHandle2Y = ReadFloat(88);
+
+                    // Base block
+                    RepairSplineHandles(baseY0, baseY1, ReadFloat(52), ReadFloat(56), ReadFloat(60), ref baseHandle1X, ref baseHandle1Y, ref baseHandle2X, ref baseHandle2Y);
+
+                    // Range block, same layout, 48 bytes further on
+                    RepairSplineHandles(rangeY0, rangeY1, ReadFloat(100), ReadFloat(104), ReadFloat(108), ref rangeHandle1X, ref rangeHandle1Y, ref rangeHandle2X, ref rangeHandle2Y);
 
                     bool spline1 = false;
                     bool spline2 = false;

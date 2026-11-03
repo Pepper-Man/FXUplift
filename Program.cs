@@ -29,7 +29,7 @@ namespace H2ToH3EffectConverter
 
                 Console.WriteLine("Invalid input. Enter \"S\" or \"B\" characters only. Please try again.");
             }
-            
+
 
             // TEMPORARY HARDCODING
             /*
