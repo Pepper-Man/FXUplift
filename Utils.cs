@@ -68,7 +68,7 @@ namespace H2ToH3EffectConverter
             { "4,emitter age", 1 },
             { "5,emitter random 1", 3 },
             { "6,emitter random 2", 3 },
-            { "7,system lod", 8 },
+            { "7,system lod", 11 },
             { "8,game time", 12 },
             { "9,effect a scale", 13 },
             { "10,effect b scale", 14 },
