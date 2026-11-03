@@ -491,8 +491,8 @@ namespace H2ToH3EffectConverter
             ((TagFieldEnum)tagFile.SelectField($"Struct:alpha/CharEnum:Range Variable")).Value = particle.Alpha.RangeVar;
             ((TagFieldEnum)tagFile.SelectField($"Struct:alpha/CharEnum:Output Modifier")).Value = particle.Alpha.OutputMod;
             ((TagFieldEnum)tagFile.SelectField($"Struct:alpha/CharEnum:Output Modifier Input")).Value = particle.Alpha.OutputModInput;
-            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.ClampRangeMin = particle.Alpha.BaseVal;
-            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.ClampRangeMax = particle.Alpha.RangeVal;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.ClampRangeMin = (particle.Alpha.BaseVal <= 0.0f) ? 1.0f : particle.Alpha.BaseVal;
+            ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.ClampRangeMax = (particle.Alpha.RangeVal <= 0.0f) ? 1.0f : particle.Alpha.RangeVal;
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particle.Alpha.FuncType];
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:alpha/Custom:Mapping")).Value.IsRanged = particle.Alpha.UseRange;
             WriteFunctionCurve(tagFile, particle.Alpha, "Struct:alpha", particle.Alpha.UseRange);
