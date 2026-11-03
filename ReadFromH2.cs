@@ -450,11 +450,13 @@ namespace H2ToH3EffectConverter
                                 func.UseRange = func.RawData[1] != 0;
 
                                 // Get curve data
+#if DEBUG
                                 if (signed[0] == 7 || signed[0] == 10)
                                 {
                                     DumpFloats(signed, 0, 115);
                                 }
-                                
+#endif
+
                                 func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
 
                                 // Function might hold colour rather than float values
