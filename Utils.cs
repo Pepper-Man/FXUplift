@@ -242,17 +242,11 @@ namespace H2ToH3EffectConverter
         // Convert 0..255 byte -> normalized sRGB 0..1
         public static float Norm(byte b) => b / 255f;
 
-        // sRGB -> linear
-        public static float SrgbToLinearF(float c)
+        // byte[] -> plain 0..1 floats, no gamma conversion
+        // GameColor.FromRgb() takes the value shown in H3 Guerilla's Xenon column
+        public static float[] ByteRgbToNormalized(byte r, byte g, byte b)
         {
-            if (c <= 0.04045f) return c / 12.92f;
-            return (float)Math.Pow((c + 0.055f) / 1.055f, 2.4f);
-        }
-
-        // convenience: byte[] -> linear float[]
-        public static float[] ByteRgbToLinearNormalized(byte r, byte g, byte b)
-        {
-            return new float[] { SrgbToLinearF(Norm(r)), SrgbToLinearF(Norm(g)), SrgbToLinearF(Norm(b))};
+            return new float[] { Norm(r), Norm(g), Norm(b) };
         }
 
         public static Dictionary<int, FunctionEditorMasterType> funcTypeMapping = new Dictionary<int, FunctionEditorMasterType>

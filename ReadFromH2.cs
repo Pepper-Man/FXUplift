@@ -446,11 +446,12 @@ namespace H2ToH3EffectConverter
                                 // Colour RGB data is in reverse order cos endianness, hence backwards array indices
                                 byte[] unsigned = func.RawData.Select(i => (byte)i).ToArray();
 
-                                // H2 stores RGB 0-255 but GameColor.FromRgb() expects linear 0-1 values
-                                float[] colour1Linear = Utils.ByteRgbToLinearNormalized(unsigned[6], unsigned[5], unsigned[4]);
-                                float[] colour2Linear = Utils.ByteRgbToLinearNormalized(unsigned[18], unsigned[17], unsigned[16]);
-                                float[] colour3Linear = Utils.ByteRgbToLinearNormalized(unsigned[10], unsigned[9], unsigned[8]);
-                                float[] colour4Linear = Utils.ByteRgbToLinearNormalized(unsigned[14], unsigned[13], unsigned[12]);
+                                // H2 stores RGB 0-255. GameColor.FromRgb() takes the value shown in the H3 picker's Xenon column,
+                                // which is what the game renders, so pass the plain 0-1 value with no gamma conversion.
+                                float[] colour1Linear = Utils.ByteRgbToNormalized(unsigned[6], unsigned[5], unsigned[4]);
+                                float[] colour2Linear = Utils.ByteRgbToNormalized(unsigned[18], unsigned[17], unsigned[16]);
+                                float[] colour3Linear = Utils.ByteRgbToNormalized(unsigned[10], unsigned[9], unsigned[8]);
+                                float[] colour4Linear = Utils.ByteRgbToNormalized(unsigned[14], unsigned[13], unsigned[12]);
 
                                 int funcType = func.RawData[1];
 
@@ -637,11 +638,12 @@ namespace H2ToH3EffectConverter
                     // Colour RGB data is in reverse order cos endianness, hence backwards array indices
                     byte[] unsigned = func.RawData.Select(i => (byte)i).ToArray();
 
-                    // H2 stores RGB 0-255 but GameColor.FromRgb() expects linear 0-1 values
-                    float[] colour1Linear = Utils.ByteRgbToLinearNormalized(unsigned[6], unsigned[5], unsigned[4]);
-                    float[] colour2Linear = Utils.ByteRgbToLinearNormalized(unsigned[18], unsigned[17], unsigned[16]);
-                    float[] colour3Linear = Utils.ByteRgbToLinearNormalized(unsigned[10], unsigned[9], unsigned[8]);
-                    float[] colour4Linear = Utils.ByteRgbToLinearNormalized(unsigned[14], unsigned[13], unsigned[12]);
+                    // H2 stores RGB 0-255. GameColor.FromRgb() takes the value shown in the H3 picker's Xenon column,
+                    // which is what the game renders, so pass the plain 0-1 value with no gamma conversion.
+                    float[] colour1Linear = Utils.ByteRgbToNormalized(unsigned[6], unsigned[5], unsigned[4]);
+                    float[] colour2Linear = Utils.ByteRgbToNormalized(unsigned[18], unsigned[17], unsigned[16]);
+                    float[] colour3Linear = Utils.ByteRgbToNormalized(unsigned[10], unsigned[9], unsigned[8]);
+                    float[] colour4Linear = Utils.ByteRgbToNormalized(unsigned[14], unsigned[13], unsigned[12]);
 
                     int funcType = func.RawData[1];
 
