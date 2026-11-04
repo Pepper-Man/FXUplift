@@ -112,7 +112,10 @@ namespace H2ToH3EffectConverter
             string[] allEffects = Directory.GetFiles(Path.Combine(h2ek, "tags"), "*.effect", SearchOption.AllDirectories);
 
             int i = 0;
-            bool debugOutput = true;
+            bool debugOutput = false;
+#if DEBUG
+            debugOutput = true;
+#endif
             foreach (string h2EffectPath in allEffects)
             {
                 string outputFolder = Utils.H2ToH3Path(h2EffectPath);

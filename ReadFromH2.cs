@@ -10,6 +10,7 @@ namespace H2ToH3EffectConverter
 {
     internal class ReadFromH2
     {
+        // Used for testing in debug builds
         static void DumpFloats(sbyte[] data, int from, int to)
         {
             Console.WriteLine($"length = {data.Length}, type = {data[0]}");
@@ -192,6 +193,100 @@ namespace H2ToH3EffectConverter
             public Halo2Function FrameIndex { get; set; }
         }
 
+        // Parses one H2 function (the Input Variable field group plus its data block).
+        // allowColour: decode the 2/3/4-colour data used by tint functions
+        private static Halo2Function ParseHalo2Function(XmlNode inputVarField, bool allowColour)
+        {
+            Halo2Function func = new Halo2Function();
+
+            func.InputVar = Utils.funcInputMapping[inputVarField.InnerText.Trim()];
+            func.RangeVar = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Range Variable']")?.InnerText.Trim()];
+            func.OutputMod = Utils.ParseEnumIndex(inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier']")?.InnerText);
+            func.OutputModInput = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier Input']")?.InnerText.Trim()];
+
+            // Read data block
+            XmlNode dataBlock = inputVarField.SelectSingleNode("following-sibling::block[@name='data']");
+            func.RawData = dataBlock.SelectNodes("./element/field[@name='Value']").Cast<XmlNode>().Select(n => int.Parse(n.InnerText.Trim())).ToArray();
+
+            // Convert raw data to signed bytes
+            sbyte[] signed = func.RawData.Select(i => (sbyte)i).ToArray();
+            // Then read some values
+            func.BaseVal = Utils.ReadHalo2PackedFloat(signed, 6);
+            func.RangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
+
+            // First integer is function type index
+            func.FuncType = func.RawData[0];
+
+            // Second int is use range, 0=off 1=on
+            func.UseRange = func.RawData[1] != 0;
+
+            // Get curve data
+            func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
+
+            if (!allowColour)
+            {
+                return func;
+            }
+
+            // Function might hold colour rather than float values
+            int funcType = func.RawData[1];
+            if (funcType < 32)
+            {
+                return func; // Not a colour-type function
+            }
+
+            // Convert raw data to UNsigned bytes
+            // Colour RGB data is in reverse order cos endianness, hence backwards array indices
+            byte[] unsigned = func.RawData.Select(i => (byte)i).ToArray();
+            if (unsigned.Length < 19)
+            {
+                Console.WriteLine($"[warning] colour function data is only {unsigned.Length} bytes, expected at least 19. Colours skipped.");
+                return func;
+            }
+
+            // H2 stores RGB 0-255. GameColor.FromRgb() takes the value shown in the H3 picker's Xenon column,
+            // which is what the game renders, so pass the plain 0-1 value with no gamma conversion.
+            float[] colour1 = Utils.ByteRgbToNormalized(unsigned[6], unsigned[5], unsigned[4]);
+            float[] colour2 = Utils.ByteRgbToNormalized(unsigned[18], unsigned[17], unsigned[16]);
+            float[] colour3 = Utils.ByteRgbToNormalized(unsigned[10], unsigned[9], unsigned[8]);
+            float[] colour4 = Utils.ByteRgbToNormalized(unsigned[14], unsigned[13], unsigned[12]);
+
+            if (funcType == 32 || funcType == 33)
+            {
+                // 2-Colour
+                func.ColourType = 2;
+                func.Colour1 = GameColor.FromRgb(colour1[0], colour1[1], colour1[2]);
+                func.Colour2 = GameColor.FromRgb(colour2[0], colour2[1], colour2[2]);
+                func.UseRange = funcType == 33;
+            }
+            else if (funcType == 48 || funcType == 49)
+            {
+                // 3-Colour
+                func.ColourType = 3;
+                // For some godforsaken reason the colour order changes the more colours there are
+                // Figured out through trial and error which order to use
+                func.Colour1 = GameColor.FromRgb(colour1[0], colour1[1], colour1[2]);
+                func.Colour3 = GameColor.FromRgb(colour2[0], colour2[1], colour2[2]);
+                func.Colour2 = GameColor.FromRgb(colour3[0], colour3[1], colour3[2]);
+                func.UseRange = funcType == 49;
+            }
+            else if (funcType == 64 || funcType == 65)
+            {
+                // 4-Colour
+                // For some godforsaken reason the colour order changes the more colours there are
+                // Figured out through trial and error which order to use
+                func.ColourType = 4;
+                func.Colour1 = GameColor.FromRgb(colour1[0], colour1[1], colour1[2]);
+                func.Colour4 = GameColor.FromRgb(colour2[0], colour2[1], colour2[2]);
+                func.Colour2 = GameColor.FromRgb(colour3[0], colour3[1], colour3[2]);
+                func.Colour3 = GameColor.FromRgb(colour4[0], colour4[1], colour4[2]);
+                func.UseRange = funcType == 65;
+            }
+
+            return func;
+
+        }
+
         public static Effect GetEffectDataFromXML(string xmlPath, string h2ekPath, string h3ekPath, bool debugOutput)
         {
             Effect effect = new Effect();
@@ -211,15 +306,15 @@ namespace H2ToH3EffectConverter
                 List<string> effectMarkers = new List<string>();
 
                 // MARKERS
-                Console.WriteLine($"\nEffect: {xmlPath}");
-                Console.WriteLine("MARKERS:");
+                if (debugOutput) Console.WriteLine($"\nEffect: {xmlPath}");
+                if (debugOutput) Console.WriteLine("MARKERS:");
                 foreach (XmlNode markerElement in effectFile.SelectNodes("//block[@name='locations']/element"))
                 {
                     XmlNode name = markerElement.SelectSingleNode("./field[@name='marker name']");
                     if (name != null)
                     {
                         string markerName = name.InnerText.Trim();
-                        Console.WriteLine(markerName);
+                        if (debugOutput) Console.WriteLine(markerName);
                         effectMarkers.Add(markerName);
                     }
 
@@ -231,19 +326,19 @@ namespace H2ToH3EffectConverter
                 foreach (XmlNode eventElement in effectFile.SelectNodes("//block[@name='events']/element"))
                 {
                     Event eventData = new Event();
-                    Console.WriteLine($"\nREADING EVENT {eventElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(eventElement)}:");
+                    if (debugOutput) Console.WriteLine($"\nREADING EVENT {eventElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(eventElement)}:");
 
-                    eventData.SkipFraction = float.Parse(eventElement.SelectSingleNode("./field[@name='skip fraction']").InnerText.Trim());
-                    eventData.DelayBounds = eventElement.SelectSingleNode("./field[@name='delay bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
-                    eventData.DurationBounds = eventElement.SelectSingleNode("./field[@name='duration bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
-                    Console.WriteLine($"Skip fraction: {eventData.SkipFraction}\nDelay bounds: {string.Join(", ", eventData.DelayBounds)}\nDuration bounds: {string.Join(", ", eventData.DurationBounds)}");
+                    eventData.SkipFraction = Utils.ParseFloat(eventElement.SelectSingleNode("./field[@name='skip fraction']").InnerText.Trim());
+                    eventData.DelayBounds = eventElement.SelectSingleNode("./field[@name='delay bounds']").InnerText.Trim().Split(',').Select(s => Utils.ParseFloat(s)).ToArray();
+                    eventData.DurationBounds = eventElement.SelectSingleNode("./field[@name='duration bounds']").InnerText.Trim().Split(',').Select(s => Utils.ParseFloat(s)).ToArray();
+                    if (debugOutput) Console.WriteLine($"Skip fraction: {eventData.SkipFraction}\nDelay bounds: {string.Join(", ", eventData.DelayBounds)}\nDuration bounds: {string.Join(", ", eventData.DurationBounds)}");
 
                     // PARTS
                     List<Part> parts = new List<Part>();
                     foreach (XmlNode partElement in eventElement.SelectNodes(".//block[@name='parts']/element"))
                     {
                         Part part = new Part();
-                        Console.WriteLine($"\n\tREADING PART {partElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(partElement)}:");
+                        if (debugOutput) Console.WriteLine($"\n\tREADING PART {partElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(partElement)}:");
 
                         part.Environment = int.Parse(partElement.SelectNodes("./field[@name='create in']")[0].InnerText.Trim().Substring(0, 1));
                         part.Mode = int.Parse(partElement.SelectNodes("./field[@name='create in']")[1].InnerText.Trim().Substring(0, 1));
@@ -258,10 +353,10 @@ namespace H2ToH3EffectConverter
                                 Extension = partElement.SelectSingleNode("./tag_reference[@name='type']").Attributes["type"].Value
                             };
                         }
-                        part.VelocityBounds = partElement.SelectSingleNode("./field[@name='velocity bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
-                        part.VelocityConeAngle = float.Parse(partElement.SelectSingleNode("./field[@name='velocity cone angle']").InnerText.Trim());
-                        part.AngularVelocityBounds = partElement.SelectSingleNode("./field[@name='angular velocity bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
-                        part.RadiusModifierBounds = partElement.SelectSingleNode("./field[@name='radius modifier bounds']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
+                        part.VelocityBounds = partElement.SelectSingleNode("./field[@name='velocity bounds']").InnerText.Trim().Split(',').Select(s => Utils.ParseFloat(s)).ToArray();
+                        part.VelocityConeAngle = Utils.ParseFloat(partElement.SelectSingleNode("./field[@name='velocity cone angle']").InnerText.Trim());
+                        part.AngularVelocityBounds = partElement.SelectSingleNode("./field[@name='angular velocity bounds']").InnerText.Trim().Split(',').Select(s => Utils.ParseFloat(s)).ToArray();
+                        part.RadiusModifierBounds = partElement.SelectSingleNode("./field[@name='radius modifier bounds']").InnerText.Trim().Split(',').Select(s => Utils.ParseFloat(s)).ToArray();
                         part.AScalesVals = uint.Parse(partElement.SelectSingleNode("./field[@name='A scales values']").InnerText.Trim().Split('\n')[0]);
                         part.BScalesVals = uint.Parse(partElement.SelectSingleNode("./field[@name='B scales values']").InnerText.Trim().Split('\n')[0]);
 
@@ -276,7 +371,7 @@ namespace H2ToH3EffectConverter
                     foreach (XmlNode particleSysElement in eventElement.SelectNodes(".//block[@name='particle systems']/element"))
                     {
                         ParticleSystem particleSystem = new ParticleSystem();
-                        Console.WriteLine($"\n\tREADING PARTICLE SYSTEM {particleSysElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(particleSysElement)}:");
+                        if (debugOutput) Console.WriteLine($"\n\tREADING PARTICLE SYSTEM {particleSysElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(particleSysElement)}:");
 
                         // Need to check if particle reference is actually a particle mode, in which case we just have to ignore it
                         // And if it is a "normal" particle, that it actually exists
@@ -325,10 +420,10 @@ namespace H2ToH3EffectConverter
                         particleSystem.CameraMode = int.Parse(particleSysElement.SelectNodes("./field[@name='camera mode']")[0].InnerText.Trim().Substring(0, 1));
                         particleSystem.SortBias = int.Parse(particleSysElement.SelectNodes("./field[@name='sort bias']")[0].InnerText.Trim());
                         particleSystem.Flags = uint.Parse(particleSysElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim().Split('\n')[0]);
-                        particleSystem.LodIn = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD in distance']").InnerText.Trim());
-                        particleSystem.LodFInDelta = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD feather in delta']").InnerText.Trim());
-                        particleSystem.LodOut = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD out distance']").InnerText.Trim());
-                        particleSystem.LodFOutDelta = float.Parse(particleSysElement.SelectSingleNode("./field[@name='LOD feather out delta']").InnerText.Trim());
+                        particleSystem.LodIn = Utils.ParseFloat(particleSysElement.SelectSingleNode("./field[@name='LOD in distance']").InnerText.Trim());
+                        particleSystem.LodFInDelta = Utils.ParseFloat(particleSysElement.SelectSingleNode("./field[@name='LOD feather in delta']").InnerText.Trim());
+                        particleSystem.LodOut = Utils.ParseFloat(particleSysElement.SelectSingleNode("./field[@name='LOD out distance']").InnerText.Trim());
+                        particleSystem.LodFOutDelta = Utils.ParseFloat(particleSysElement.SelectSingleNode("./field[@name='LOD feather out delta']").InnerText.Trim());
 
                         if (debugOutput) { Utils.PrintObject(particleSystem, 1); };
 
@@ -337,7 +432,7 @@ namespace H2ToH3EffectConverter
                         foreach (XmlNode emitterElement in particleSysElement.SelectNodes(".//block[@name='emitters']/element"))
                         {
                             Emitter emitter = new Emitter();
-                            Console.WriteLine($"\n\t\tREADING EMITTER {emitterElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(emitterElement)}:");
+                            if (debugOutput) Console.WriteLine($"\n\t\tREADING EMITTER {emitterElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(emitterElement)}:");
 
                             if (emitterElement.SelectSingleNode("./tag_reference[@name='particle physics']").InnerText.Trim() != "")
                             {
@@ -372,33 +467,8 @@ namespace H2ToH3EffectConverter
 
                                             foreach (XmlNode inputVarField in movementFunctionGroups)
                                             {
-                                                Halo2Function func = new Halo2Function();
-
-                                                func.InputVar = Utils.funcInputMapping[inputVarField.InnerText.Trim()];
-                                                func.RangeVar = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Range Variable']")?.InnerText.Trim()];
-                                                func.OutputMod = int.Parse(inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier']")?.InnerText.Trim().Substring(0, 1));
-                                                func.OutputModInput = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier Input']")?.InnerText.Trim()];
-
-                                                // Read data block
-                                                XmlNode dataBlock = inputVarField.SelectSingleNode("following-sibling::block[@name='data']");
-                                                func.RawData = dataBlock.SelectNodes("./element/field[@name='Value']").Cast<XmlNode>().Select(n => int.Parse(n.InnerText.Trim())).ToArray();
-
-                                                // Convert raw data to signed bytes
-                                                sbyte[] signed = func.RawData.Select(i => (sbyte)i).ToArray();
-                                                // Then read some values
-                                                func.BaseVal = Utils.ReadHalo2PackedFloat(signed, 6);
-                                                func.RangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
-
-                                                // First integer is function type index
-                                                func.FuncType = func.RawData[0];
-
-                                                // Second int is use range, 0=off 1=on
-                                                func.UseRange = func.RawData[1] != 0;
-
-                                                // Get curve data
-                                                func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
-
-                                                movementFunctions.Add(func);
+                                                // Physics functions are scalar only, so skip colour handling
+                                                movementFunctions.Add(ParseHalo2Function(inputVarField, false));
                                             }
 
                                             pPhysics.Gravity = movementFunctions[0];
@@ -426,113 +496,7 @@ namespace H2ToH3EffectConverter
 
                             foreach (XmlNode inputVarField in functionFieldGroups)
                             {
-                                Halo2Function func = new Halo2Function();
-
-                                func.InputVar = Utils.funcInputMapping[inputVarField.InnerText.Trim()];
-                                func.RangeVar = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Range Variable']")?.InnerText.Trim()];
-                                func.OutputMod = int.Parse(inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier']")?.InnerText.Trim().Substring(0, 1));
-                                func.OutputModInput = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier Input']")?.InnerText.Trim()];
-
-                                // Read data block
-                                XmlNode dataBlock = inputVarField.SelectSingleNode("following-sibling::block[@name='data']");
-                                func.RawData = dataBlock.SelectNodes("./element/field[@name='Value']").Cast<XmlNode>().Select(n => int.Parse(n.InnerText.Trim())).ToArray();
-
-                                // Convert raw data to signed bytes
-                                sbyte[] signed = func.RawData.Select(i => (sbyte)i).ToArray();
-                                // Then read some values
-                                func.BaseVal = Utils.ReadHalo2PackedFloat(signed, 6);
-                                func.RangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
-
-                                // First integer is function type index
-                                func.FuncType = func.RawData[0];
-
-                                // Second int is use range, 0=off 1=on
-                                func.UseRange = func.RawData[1] != 0;
-
-                                // Get curve data
-#if DEBUG
-                                if (signed[0] == 7 || signed[0] == 10)
-                                {
-                                    DumpFloats(signed, 0, 115);
-                                }
-#endif
-
-                                func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
-
-                                // Function might hold colour rather than float values
-                                // Convert raw data to UNsigned bytes
-                                // Colour RGB data is in reverse order cos endianness, hence backwards array indices
-                                byte[] unsigned = func.RawData.Select(i => (byte)i).ToArray();
-
-                                // H2 stores RGB 0-255. GameColor.FromRgb() takes the value shown in the H3 picker's Xenon column,
-                                // which is what the game renders, so pass the plain 0-1 value with no gamma conversion.
-                                float[] colour1Linear = Utils.ByteRgbToNormalized(unsigned[6], unsigned[5], unsigned[4]);
-                                float[] colour2Linear = Utils.ByteRgbToNormalized(unsigned[18], unsigned[17], unsigned[16]);
-                                float[] colour3Linear = Utils.ByteRgbToNormalized(unsigned[10], unsigned[9], unsigned[8]);
-                                float[] colour4Linear = Utils.ByteRgbToNormalized(unsigned[14], unsigned[13], unsigned[12]);
-
-                                int funcType = func.RawData[1];
-
-                                if (funcType >= 32) // Check for colour-type function
-                                {
-                                    if (funcType == 32 || funcType == 33)
-                                    {
-                                        // 2-Colour
-                                        func.ColourType = 2;
-                                        func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
-                                        func.Colour2 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
-
-                                        if (funcType == 33)
-                                        {
-                                            func.UseRange = true;
-                                        }
-                                        else
-                                        {
-                                            func.UseRange = false;
-                                        }
-                                    }
-                                    else if (funcType == 48 || funcType == 49)
-                                    {
-                                        // 3-Colour
-                                        func.ColourType = 3;
-                                        // For some godforsaken reason the colour order changes the more colours there are
-                                        // Figured out through trial and error which order to use
-                                        func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
-                                        func.Colour3 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
-                                        func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
-
-                                        if (funcType == 49)
-                                        {
-                                            func.UseRange = true;
-                                        }
-                                        else
-                                        {
-                                            func.UseRange = false;
-                                        }
-                                    }
-                                    else if (funcType == 64 || funcType == 65)
-                                    {
-                                        // 4-Colour
-                                        // For some godforsaken reason the colour order changes the more colours there are
-                                        // Figured out through trial and error which order to use
-                                        func.ColourType = 4;
-                                        func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
-                                        func.Colour4 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
-                                        func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
-                                        func.Colour3 = GameColor.FromRgb(colour4Linear[0], colour4Linear[1], colour4Linear[2]);
-
-                                        if (funcType == 65)
-                                        {
-                                            func.UseRange = true;
-                                        }
-                                        else
-                                        {
-                                            func.UseRange = false;
-                                        }
-                                    }
-                                }
-                                
-                                functions.Add(func);
+                                functions.Add(ParseHalo2Function(inputVarField, true));
                             }
 
                             // Same order as defined in the H2 tag
@@ -547,8 +511,8 @@ namespace H2ToH3EffectConverter
                             emitter.Angle = functions[8];
 
                             emitter.EmissionShape = int.Parse(emitterElement.SelectSingleNode("./field[@name='emission shape']")?.InnerText.Trim().Substring(0, 1));
-                            emitter.TransOffset = emitterElement.SelectSingleNode("./field[@name='translational offset']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
-                            emitter.RelativeDir = emitterElement.SelectSingleNode("./field[@name='relative direction']").InnerText.Trim().Split(',').Select(s => float.Parse(s)).ToArray();
+                            emitter.TransOffset = emitterElement.SelectSingleNode("./field[@name='translational offset']").InnerText.Trim().Split(',').Select(s => Utils.ParseFloat(s)).ToArray();
+                            emitter.RelativeDir = emitterElement.SelectSingleNode("./field[@name='relative direction']").InnerText.Trim().Split(',').Select(s => Utils.ParseFloat(s)).ToArray();
 
                             if (debugOutput) { Utils.PrintObject(emitter, 2); };
 
@@ -625,106 +589,7 @@ namespace H2ToH3EffectConverter
                 List<Halo2Function> particleFunctions = new List<Halo2Function>();
                 foreach (XmlNode inputVarField in particleFunctionGroups)
                 {
-                    Halo2Function func = new Halo2Function();
-
-                    func.InputVar = Utils.funcInputMapping[inputVarField.InnerText.Trim()];
-                    func.RangeVar = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Range Variable']")?.InnerText.Trim()];
-                    func.OutputMod = int.Parse(inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier']")?.InnerText.Trim().Substring(0, 1));
-                    func.OutputModInput = Utils.funcInputMapping[inputVarField.SelectSingleNode("following-sibling::field[@name='Output Modifier Input']")?.InnerText.Trim()];
-
-                    // Read data block
-                    XmlNode dataBlock = inputVarField.SelectSingleNode("following-sibling::block[@name='data']");
-                    func.RawData = dataBlock.SelectNodes("./element/field[@name='Value']").Cast<XmlNode>().Select(n => int.Parse(n.InnerText.Trim())).ToArray();
-
-                    // Convert raw data to signed bytes
-                    sbyte[] signed = func.RawData.Select(i => (sbyte)i).ToArray();
-                    // Then read some values
-                    func.BaseVal = Utils.ReadHalo2PackedFloat(signed, 6);
-                    func.RangeVal = Utils.ReadHalo2PackedFloat(signed, 10);
-
-                    // First integer is function type index
-                    func.FuncType = func.RawData[0];
-
-                    // Second int is use range, 0=off 1=on
-                    func.UseRange = func.RawData[1] != 0;
-
-                    // Get curve data
-                    func.CurvePoints = Utils.HaloCurveParser.ParseCurve(signed);
-
-                    // Function might hold colour rather than float values
-                    // Convert raw data to UNsigned bytes
-                    // Colour RGB data is in reverse order cos endianness, hence backwards array indices
-                    byte[] unsigned = func.RawData.Select(i => (byte)i).ToArray();
-
-                    // H2 stores RGB 0-255. GameColor.FromRgb() takes the value shown in the H3 picker's Xenon column,
-                    // which is what the game renders, so pass the plain 0-1 value with no gamma conversion.
-                    float[] colour1Linear = Utils.ByteRgbToNormalized(unsigned[6], unsigned[5], unsigned[4]);
-                    float[] colour2Linear = Utils.ByteRgbToNormalized(unsigned[18], unsigned[17], unsigned[16]);
-                    float[] colour3Linear = Utils.ByteRgbToNormalized(unsigned[10], unsigned[9], unsigned[8]);
-                    float[] colour4Linear = Utils.ByteRgbToNormalized(unsigned[14], unsigned[13], unsigned[12]);
-
-                    int funcType = func.RawData[1];
-
-                    if (funcType >= 32) // Check for colour-type function
-                    {
-                        if (funcType == 32 || funcType == 33)
-                        {
-                            // 2-Colour
-                            func.ColourType = 2;
-                            func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
-                            func.Colour2 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
-
-                            if (funcType == 33)
-                            {
-                                func.UseRange = true;
-                            }
-                            else
-                            {
-                                func.UseRange = false;
-                            }
-                        }
-                        else if (funcType == 48 || funcType == 49)
-                        {
-                            // 3-Colour
-                            func.ColourType = 3;
-                            // For some godforsaken reason the colour order changes the more colours there are
-                            // Figured out through trial and error which order to use
-                            func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
-                            func.Colour3 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
-                            func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
-
-                            if (funcType == 49)
-                            {
-                                func.UseRange = true;
-                            }
-                            else
-                            {
-                                func.UseRange = false;
-                            }
-                        }
-                        else if (funcType == 64 || funcType == 65)
-                        {
-                            // 4-Colour
-                            // For some godforsaken reason the colour order changes the more colours there are
-                            // Figured out through trial and error which order to use
-                            func.ColourType = 4;
-                            func.Colour1 = GameColor.FromRgb(colour1Linear[0], colour1Linear[1], colour1Linear[2]);
-                            func.Colour4 = GameColor.FromRgb(colour2Linear[0], colour2Linear[1], colour2Linear[2]);
-                            func.Colour2 = GameColor.FromRgb(colour3Linear[0], colour3Linear[1], colour3Linear[2]);
-                            func.Colour3 = GameColor.FromRgb(colour4Linear[0], colour4Linear[1], colour4Linear[2]);
-
-                            if (funcType == 65)
-                            {
-                                func.UseRange = true;
-                            }
-                            else
-                            {
-                                func.UseRange = false;
-                            }
-                        }
-                    }
-
-                    particleFunctions.Add(func);
+                    particleFunctions.Add(ParseHalo2Function(inputVarField, true));
                 }
 
                 // Same order as defined in the H2 tag
