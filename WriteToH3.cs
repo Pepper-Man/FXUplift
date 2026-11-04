@@ -432,7 +432,7 @@ namespace H2ToH3EffectConverter
                 WriteParticleData(tagFile, particle);
                 tagFile.Save();
             }
-            catch
+            finally
             {
                 tagFile.Dispose();
             }
