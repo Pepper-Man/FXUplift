@@ -17,6 +17,17 @@ namespace H2ToH3EffectConverter
 
     internal class WriteToH3
     {
+        // MB can only be init'd once per process, so keep track
+        private static bool projectInitialised = false;
+
+        private static void EnsureProjectInitialised(string h3ekPath)
+        {
+            if (projectInitialised) return;
+
+            ManagedBlamSystem.InitializeProject(InitializationType.TagsOnly, h3ekPath);
+            projectInitialised = true;
+        }
+
         public static string GetH3TagFilePath(string h3ekPath, string outputPath, string extension)
         {
             return Path.Combine(h3ekPath, "tags", outputPath + "." + extension);
@@ -24,11 +35,24 @@ namespace H2ToH3EffectConverter
 
         public static void WriteH3Effect(string h3ekPath, string outputPath, Effect effect)
         {
-            ManagedBlamSystem.InitializeProject(InitializationType.TagsOnly, h3ekPath);
+            EnsureProjectInitialised(h3ekPath);
+
             TagPath outputTagPath = TagPath.FromPathAndExtension(outputPath, "effect");
             TagFile tagFile = new TagFile();
-            tagFile.New(outputTagPath);
+            try
+            {
+                tagFile.New(outputTagPath);
+                WriteEffectData(h3ekPath, tagFile, effect);
+                tagFile.Save();
+            }
+            finally
+            {
+                tagFile.Dispose();
+            }
+        }
 
+        private static void WriteEffectData(string h3ekPath, TagFile tagFile, Effect effect)
+        {
             Console.WriteLine("Writing tag data");
 
             // MARKERS ----------------------------------------------------------------------------------------
@@ -61,7 +85,7 @@ namespace H2ToH3EffectConverter
                     ((TagFieldEnum)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/ShortEnum:create in")).Value = effect.Events[eventIndex].Parts[partsIndex].Environment;
                     ((TagFieldEnum)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/ShortEnum:violence mode")).Value = effect.Events[eventIndex].Parts[partsIndex].Mode;
                     ((TagFieldBlockIndex)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/ShortBlockIndex:location")).Value = effect.Events[eventIndex].Parts[partsIndex].Location;
-                    ((TagFieldFlags)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/WordFlags:flags")).RawValue= effect.Events[eventIndex].Parts[partsIndex].Flags;
+                    ((TagFieldFlags)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/WordFlags:flags")).RawValue = effect.Events[eventIndex].Parts[partsIndex].Flags;
                     if (effect.Events[eventIndex].Parts[partsIndex].TagRef != null)
                     {
                         ((TagFieldReference)tagFile.SelectField($"Block:events[{eventIndex}]/Block:parts[{partsIndex}]/Reference:type")).Path = TagPath.FromPathAndType(effect.Events[eventIndex].Parts[partsIndex].TagRef.Path, effect.Events[eventIndex].Parts[partsIndex].TagRef.Extension);
@@ -76,7 +100,7 @@ namespace H2ToH3EffectConverter
 
                 // PARTICLE SYSTEMS ----------------------------------------------------------------------------
                 int particleSysCount = effect.Events[eventIndex].ParticleSystems.Count();
-                for (int pSysIndex = 0;  pSysIndex < particleSysCount; pSysIndex++)
+                for (int pSysIndex = 0; pSysIndex < particleSysCount; pSysIndex++)
                 {
                     ((TagFieldBlock)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems")).AddElement();
                     if (effect.Events[eventIndex].ParticleSystems[pSysIndex].ParticleRef != null)
@@ -91,7 +115,7 @@ namespace H2ToH3EffectConverter
                             }
                         }
                     }
-                    
+
                     ((TagFieldBlockIndex)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/LongBlockIndex:location")).Value = effect.Events[eventIndex].ParticleSystems[pSysIndex].Location;
                     ((TagFieldEnum)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/ShortEnum:coordinate system")).Value = effect.Events[eventIndex].ParticleSystems[pSysIndex].CoordSystem;
                     ((TagFieldEnum)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/ShortEnum:environment")).Value = effect.Events[eventIndex].ParticleSystems[pSysIndex].Environment;
@@ -106,7 +130,7 @@ namespace H2ToH3EffectConverter
 
                     // EMITTERS --------------------------------------------------------------------------------
                     int emitterCount = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters.Count();
-                    for (int emitterIndex  = 0; emitterIndex < emitterCount; emitterIndex++)
+                    for (int emitterIndex = 0; emitterIndex < emitterCount; emitterIndex++)
                     {
                         string emitter = $"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/Block:emitters[{emitterIndex}]";
                         ((TagFieldBlock)tagFile.SelectField($"Block:events[{eventIndex}]/Block:particle systems[{pSysIndex}]/Block:emitters")).AddElement();
@@ -311,7 +335,7 @@ namespace H2ToH3EffectConverter
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle rotation/Custom:Mapping")).Value.IsRanged = particleRotation.UseRange;
                             WriteFunctionCurve(tagFile, particleRotation, $"{emitter}/Struct:particle rotation", particleRotation.UseRange);
                         }
-                        
+
                         // Particle Size
                         Halo2Function particleSize = effect.Events[eventIndex].ParticleSystems[pSysIndex].Emitters[emitterIndex].Size;
                         ((TagFieldEnum)tagFile.SelectField($"{emitter}/Struct:particle size/CharEnum:Input Variable")).Value = particleSize.InputVar;
@@ -323,7 +347,7 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle size/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particleSize.FuncType];
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle size/Custom:Mapping")).Value.IsRanged = particleSize.UseRange;
                         WriteFunctionCurve(tagFile, particleSize, $"{emitter}/Struct:particle size", particleSize.UseRange);
-                        
+
                         // Particle Scale
                         if (effect.Events[eventIndex].ParticleSystems[pSysIndex].Particle != null)
                         {
@@ -355,7 +379,7 @@ namespace H2ToH3EffectConverter
                         {
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.SetColor(0, GameColor.FromRgb(1, 1, 1));
                         }
-                        
+
                         if (particleTint.ColourType == 2)
                         {
                             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{emitter}/Struct:particle tint/Custom:Mapping")).Value.ColorGraphType = FunctionEditorColorGraphType.TwoColor;
@@ -391,29 +415,35 @@ namespace H2ToH3EffectConverter
                     }
                 }
             }
-
-
-            tagFile.Save();
         }
 
         public static void WriteH3Particle(string h3ekPath, string outputPath, Particle particle)
         {
+            EnsureProjectInitialised(h3ekPath);
+
+            // Another effect converted earlier may have created this already
+            if (File.Exists(GetH3TagFilePath(h3ekPath, outputPath, "particle"))) return;
+
             TagPath outputTagPath = TagPath.FromPathAndExtension(outputPath, "particle");
             TagFile tagFile = new TagFile();
             try
             {
                 tagFile.New(outputTagPath);
+                WriteParticleData(tagFile, particle);
+                tagFile.Save();
             }
             catch
             {
-                return; // Duplicate entry
+                tagFile.Dispose();
             }
-            
+        }
 
+        private static void WriteParticleData(TagFile tagFile, Particle particle)
+        {
             uint mainFlagsVal = 0, appearFlagsVal = 0, animFlagsVal = 0;
             if (particle.Flags[0] != "0")
             {
-                for (int i = 1; i <  particle.Flags.Length; i++) // Start at one to skip the value and go straight to the actual flags
+                for (int i = 1; i < particle.Flags.Length; i++) // Start at one to skip the value and go straight to the actual flags
                 {
                     if (Utils.particleMainFlagValues.ContainsKey(particle.Flags[i]))
                     {
@@ -512,9 +542,6 @@ namespace H2ToH3EffectConverter
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:frame index/Custom:Mapping")).Value.MasterType = Utils.funcTypeMapping[particle.FrameIndex.FuncType];
             ((TagFieldCustomFunctionEditor)tagFile.SelectField($"Struct:frame index/Custom:Mapping")).Value.IsRanged = particle.FrameIndex.UseRange;
             WriteFunctionCurve(tagFile, particle.FrameIndex, "Struct:frame index", particle.FrameIndex.UseRange);
-
-
-            tagFile.Save();
         }
     
         public static void WriteFunctionCurve(TagFile tagFile, Halo2Function func, string fieldString, bool useRange)
@@ -581,7 +608,6 @@ namespace H2ToH3EffectConverter
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 1, rangeHandle1);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 2, rangeHandle2);
                         ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 3, rangeEndY);
-                        ((TagFieldCustomFunctionEditor)tagFile.SelectField($"{fieldString}/Custom:Mapping")).Value.SetControlPoint(1, 2, rangeHandle2);
                     }
                 }
                 else
