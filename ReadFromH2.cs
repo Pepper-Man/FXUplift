@@ -340,8 +340,8 @@ namespace H2ToH3EffectConverter
                         Part part = new Part();
                         if (debugOutput) Console.WriteLine($"\n\tREADING PART {partElement.ParentNode.ChildNodes.Cast<XmlNode>().ToList().IndexOf(partElement)}:");
 
-                        part.Environment = int.Parse(partElement.SelectNodes("./field[@name='create in']")[0].InnerText.Trim().Substring(0, 1));
-                        part.Mode = int.Parse(partElement.SelectNodes("./field[@name='create in']")[1].InnerText.Trim().Substring(0, 1));
+                        part.Environment = Utils.ParseEnumIndex(partElement.SelectNodes("./field[@name='create in']")[0].InnerText);
+                        part.Mode = Utils.ParseEnumIndex(partElement.SelectNodes("./field[@name='create in']")[1].InnerText);
                         part.Location = int.Parse(partElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
                         part.Flags = uint.Parse(partElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim().Split('\n')[0]);
                         string path = partElement.SelectSingleNode("./tag_reference[@name='type']").InnerText.Trim();
@@ -414,10 +414,10 @@ namespace H2ToH3EffectConverter
                         }
 
                         particleSystem.Location = int.Parse(particleSysElement.SelectSingleNode("./block_index[@type='location']").Attributes["index"].Value);
-                        particleSystem.CoordSystem = int.Parse(particleSysElement.SelectNodes("./field[@name='coordinate system']")[0].InnerText.Trim().Substring(0, 1));
-                        particleSystem.Environment = int.Parse(particleSysElement.SelectNodes("./field[@name='environment']")[0].InnerText.Trim().Substring(0, 1));
-                        particleSystem.Mode = int.Parse(particleSysElement.SelectNodes("./field[@name='disposition']")[0].InnerText.Trim().Substring(0, 1));
-                        particleSystem.CameraMode = int.Parse(particleSysElement.SelectNodes("./field[@name='camera mode']")[0].InnerText.Trim().Substring(0, 1));
+                        particleSystem.CoordSystem = Utils.ParseEnumIndex(particleSysElement.SelectNodes("./field[@name='coordinate system']")[0].InnerText);
+                        particleSystem.Environment = Utils.ParseEnumIndex(particleSysElement.SelectNodes("./field[@name='environment']")[0].InnerText);
+                        particleSystem.Mode = Utils.ParseEnumIndex(particleSysElement.SelectNodes("./field[@name='disposition']")[0].InnerText);
+                        particleSystem.CameraMode = Utils.ParseEnumIndex(particleSysElement.SelectNodes("./field[@name='camera mode']")[0].InnerText);
                         particleSystem.SortBias = int.Parse(particleSysElement.SelectNodes("./field[@name='sort bias']")[0].InnerText.Trim());
                         particleSystem.Flags = uint.Parse(particleSysElement.SelectSingleNode("./field[@name='flags']").InnerText.Trim().Split('\n')[0]);
                         particleSystem.LodIn = Utils.ParseFloat(particleSysElement.SelectSingleNode("./field[@name='LOD in distance']").InnerText.Trim());
@@ -510,7 +510,7 @@ namespace H2ToH3EffectConverter
                             emitter.Radius = functions[7];
                             emitter.Angle = functions[8];
 
-                            emitter.EmissionShape = int.Parse(emitterElement.SelectSingleNode("./field[@name='emission shape']")?.InnerText.Trim().Substring(0, 1));
+                            emitter.EmissionShape = Utils.ParseEnumIndex(emitterElement.SelectSingleNode("./field[@name='emission shape']")?.InnerText);
                             emitter.TransOffset = emitterElement.SelectSingleNode("./field[@name='translational offset']").InnerText.Trim().Split(',').Select(s => Utils.ParseFloat(s)).ToArray();
                             emitter.RelativeDir = emitterElement.SelectSingleNode("./field[@name='relative direction']").InnerText.Trim().Split(',').Select(s => Utils.ParseFloat(s)).ToArray();
 
@@ -551,7 +551,7 @@ namespace H2ToH3EffectConverter
 
                 // Simple data
                 particle.Flags = particleFile.SelectSingleNode("//field[@name='flags']").InnerText.Trim().Replace("\t", "").Split('\n');
-                particle.Billboard = int.Parse(particleFile.SelectSingleNode("//field[@name='particle billboard style']").InnerText.Trim().Substring(0, 1));
+                particle.Billboard = Utils.ParseEnumIndex(particleFile.SelectSingleNode("//field[@name='particle billboard style']").InnerText);
                 particle.FirstSeqIndex = int.Parse(particleFile.SelectSingleNode("//field[@name='first sequence index']").InnerText.Trim());
                 particle.SeqCount = int.Parse(particleFile.SelectSingleNode("//field[@name='sequence count']").InnerText.Trim());
 
