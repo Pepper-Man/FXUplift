@@ -193,6 +193,22 @@ namespace H2ToH3EffectConverter
             public Halo2Function FrameIndex { get; set; }
         }
 
+        // Keeps track of XMLs we have already extracted, so we don't do it multiple times for the same tag
+        private static readonly Dictionary<string, string> xmlCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static string GetCleanXml(string tagPath, string tagType, string h2ekPath)
+        {
+            if (!xmlCache.TryGetValue(tagPath, out string xml))
+            {
+                xml = Utils.CleanXML(Utils.ExtractTagXML(tagPath, tagType, h2ekPath));
+                xmlCache[tagPath] = xml;
+            }
+
+            return xml;
+        }
+
+        // Keeps track of particles we have already ported
+        private static readonly Dictionary<string, Particle> particleCache = new Dictionary<string, Particle>(StringComparer.OrdinalIgnoreCase);
+
         // Parses one H2 function (the Input Variable field group plus its data block).
         // allowColour: decode the 2/3/4-colour data used by tint functions
         private static Halo2Function ParseHalo2Function(XmlNode inputVarField, bool allowColour)
@@ -401,8 +417,13 @@ namespace H2ToH3EffectConverter
 
                                 if (File.Exists(particleH2TagPath))
                                 {
-                                    string particleXmlPath = Utils.ExtractTagXML(particleH2TagPath, "particle", h2ekPath);
-                                    particleSystem.Particle = GetParticleDataFromXML(particleXmlPath, h2ekPath);
+                                    if (!particleCache.TryGetValue(particleH2TagPath, out Particle particle))
+                                    {
+                                        particle = GetParticleDataFromXML(GetCleanXml(particleH2TagPath, "particle", h2ekPath), h2ekPath);
+                                        particleCache[particleH2TagPath] = particle;
+                                    }
+
+                                    particleSystem.Particle = particle;
 
                                     // Create particle tag from H2 data if it doesn't exist in H3 yet
                                     if (File.Exists(particleH3TagPath))
@@ -449,9 +470,8 @@ namespace H2ToH3EffectConverter
 
                                 if (File.Exists(physicsRefFullPath))
                                 {
-                                    string particlePhysXml = Utils.ExtractTagXML(physicsRefFullPath, "particle physics", h2ekPath);
+                                    string pPhysXmlData = GetCleanXml(physicsRefFullPath, "particle physics", h2ekPath);
 
-                                    string pPhysXmlData = Utils.CleanXML(particlePhysXml);
                                     using (XmlReader pPhysReader = XmlReader.Create(new StringReader(pPhysXmlData), settings))
                                     {
                                         XmlDocument pPhysFile = new XmlDocument();
@@ -533,7 +553,7 @@ namespace H2ToH3EffectConverter
             return effect;
         }
     
-        public static Particle GetParticleDataFromXML(string xmlPath, string h2ekPath)
+        public static Particle GetParticleDataFromXML(string xmlData, string h2ekPath)
         {
             Particle particle = new Particle();
 
@@ -543,7 +563,6 @@ namespace H2ToH3EffectConverter
                 DtdProcessing = DtdProcessing.Ignore
             };
 
-            string xmlData = Utils.CleanXML(xmlPath);
             using (XmlReader reader = XmlReader.Create(new StringReader(xmlData), settings))
             {
                 XmlDocument particleFile = new XmlDocument();
