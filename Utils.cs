@@ -246,9 +246,20 @@ namespace H2ToH3EffectConverter
             return xmlOutPath;
         }
 
+        private const string H2TagsRootToken = "H2EK\\tags";
+
+        // Index of "H2EK\tags" in a path, or -1 if not found
+        public static int IndexOfTagsRoot(string fullPath)
+        {
+            return fullPath.IndexOf(H2TagsRootToken, StringComparison.OrdinalIgnoreCase);
+        }
+
         public static string GetH2EKPath(string fullEffectPath)
         {
-            return fullEffectPath.Substring(0, fullEffectPath.IndexOf("H2EK") + 4);
+            int index = IndexOfTagsRoot(fullEffectPath);
+            if (index < 0) throw new ArgumentException($"Path is not inside \"H2EK\\tags\": {fullEffectPath}");
+
+            return fullEffectPath.Substring(0, index + "H2EK".Length);
         }
 
         // Convert 0..255 byte -> normalized sRGB 0..1
@@ -572,13 +583,16 @@ namespace H2ToH3EffectConverter
     
         public static string H2ToH3Path(string h2EffectPath)
         {
-            string relativeH2Path = h2EffectPath.Split(new string[] { "H2EK\\tags" }, StringSplitOptions.None)[1].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            int tagsIndex = IndexOfTagsRoot(h2EffectPath);
+            if (tagsIndex < 0) throw new ArgumentException($"Path is not inside \"H2EK\\tags\": {h2EffectPath}");
+
+            string relativeH2Path = h2EffectPath.Substring(tagsIndex + H2TagsRootToken.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             return Path.Combine("halo_2\\", Path.GetDirectoryName(relativeH2Path), Path.GetFileNameWithoutExtension(relativeH2Path));
         }
 
         public static string GetEditingKitFolder(string ek)
         {
-            string editingKit = "";
+            string editingKit;
 
             while (true)
             {
@@ -586,7 +600,7 @@ namespace H2ToH3EffectConverter
                 editingKit = Console.ReadLine().Replace("\"", "");
                 if (Directory.Exists(editingKit))
                 {
-                    if (new DirectoryInfo(editingKit).Name == ek)
+                    if (string.Equals(new DirectoryInfo(editingKit.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)).Name, ek, StringComparison.OrdinalIgnoreCase))
                     {
                         break;
                     }
