@@ -5,10 +5,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace H2ToH3EffectConverter
 {
@@ -262,6 +264,23 @@ namespace H2ToH3EffectConverter
             return fullEffectPath.Substring(0, index + "H2EK".Length);
         }
 
+        // Parse floats the same way on every machine regardless of decimal separator
+        public static float ParseFloat(string s)
+        {
+            return float.Parse(s, NumberStyles.Float, CultureInfo.InvariantCulture);
+        }
+
+        // Tag XML enums look like "3 some name" (or just "3"). Returns the leading integer.
+        public static int ParseEnumIndex(string enumText)
+        {
+            if (enumText == null) throw new FormatException("Enum field is missing from the tag XML!");
+
+            Match m = Regex.Match(enumText, @"^\s*(-?\d+)");
+            if (!m.Success) throw new FormatException($"Could not read an enum index from \"{enumText.Trim()}\".");
+
+            return int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture);
+        }
+
         // Convert 0..255 byte -> normalized sRGB 0..1
         public static float Norm(byte b) => b / 255f;
 
@@ -388,9 +407,23 @@ namespace H2ToH3EffectConverter
 
             public static CurvePoints ParseCurve(sbyte[] data)
             {
+                // Safely warn and return 0 instead of throwing if reading past end of data
+                bool warnedTruncated = false;
+
                 // Helper to decode float from 4 bytes starting at an index
                 float ReadFloat(int byteIndex)
                 {
+                    if (byteIndex < 0 || byteIndex + 4 > data.Length)
+                    {
+                        if (!warnedTruncated)
+                        {
+                            Console.WriteLine($"[Warning] Curve data (type {data[0]}) is only {data.Length} bytes long, values beyond that are read as 0.");
+                            warnedTruncated = true;
+                        }
+
+                        return 0.0f;
+                    }
+
                     byte[] raw = new byte[4];
                     for (int i = 0; i < 4; i++)
                         raw[i] = (byte)data[byteIndex + i];
