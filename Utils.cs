@@ -187,8 +187,13 @@ namespace H2ToH3EffectConverter
             string xmlDir = Path.Combine(baseDir, subFolder);
             Directory.CreateDirectory(xmlDir);
 
+            if (!File.Exists(toolExePath)) throw new FileNotFoundException($"Could not find tool.exe at \"{toolExePath}\".", toolExePath);
+
             string tagName = Path.GetFileNameWithoutExtension(h2TagPath);
             string xmlOutPath = Path.Combine(xmlDir, $"{tagName}.xml");
+
+            // Delete any previous export so a failed export is never mistaken for a fresh one
+            if (File.Exists(xmlOutPath)) File.Delete(xmlOutPath);
 
             // Build arguments
             string[] argumentsArray = new string[]
@@ -229,7 +234,14 @@ namespace H2ToH3EffectConverter
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
                 process.WaitForExit();
+
+                if (process.ExitCode != 0)
+                {
+                    Console.WriteLine($"[Warning] tool.exe exited with code {process.ExitCode} for \"{h2TagPath}\".");
+                }
             }
+
+            if (!File.Exists(xmlOutPath)) throw new FileNotFoundException($"tool.exe did not produce an XML file for \"{h2TagPath}\".", xmlOutPath);
 
             return xmlOutPath;
         }
