@@ -17,6 +17,11 @@ namespace H2ToH3EffectConverter
 
     internal class WriteToH3
     {
+        public static string GetH3TagFilePath(string h3ekPath, string outputPath, string extension)
+        {
+            return Path.Combine(h3ekPath, "tags", outputPath + "." + extension);
+        }
+
         public static void WriteH3Effect(string h3ekPath, string outputPath, Effect effect)
         {
             ManagedBlamSystem.InitializeProject(InitializationType.TagsOnly, h3ekPath);

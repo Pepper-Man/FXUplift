@@ -72,6 +72,22 @@ namespace H2ToH3EffectConverter
             string h3ek = Utils.GetEditingKitFolder("H3EK");
             string h2ek = Utils.GetH2EKPath(h2EffectPath);
             string outputFolder = Utils.H2ToH3Path(h2EffectPath);
+
+            bool overwrite = false;
+            string existingH3Tag = WriteToH3.GetH3TagFilePath(h3ek, outputFolder, "effect");
+            if (File.Exists(existingH3Tag))
+            {
+                Console.WriteLine($"An H3 tag already exists at:\n\"{existingH3Tag}\"\nOverwrite it? (Y/N):");
+                overwrite = Console.ReadLine().ToLower() == "y";
+
+                if (!overwrite)
+                {
+                    Console.WriteLine("Skipped.");
+                    return;
+                }
+            }
+
+
             string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
             bool debugOutput = true;
             ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek, debugOutput);
