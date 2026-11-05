@@ -738,7 +738,7 @@ namespace H2ToH3EffectConverter
         public static string GetXmlOutPath(string h2TagPath, string type)
         {
             string tagName = Path.GetFileNameWithoutExtension(h2TagPath);
-            return Path.Combine(GetXmlDir(type), $"{tagName}_{ShortPathHash(h2TagPath)}.xml");
+            return Path.Combine(GetXmlDir(type), $"{tagName}_{ShortPathHash(Path.GetFullPath(h2TagPath))}.xml");
         }
 
         // An export should be reused if it exists, isn't empty, and is at least as new as the tag

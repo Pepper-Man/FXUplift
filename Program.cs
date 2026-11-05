@@ -111,9 +111,11 @@ namespace H2ToH3EffectConverter
             string h3ek = Utils.GetEditingKitFolder("H3EK");
 
             string[] allEffects = Directory.GetFiles(Path.Combine(h2ek, "tags"), "*.effect", SearchOption.AllDirectories);
+            string[] allParticles = Directory.GetFiles(Path.Combine(h2ek, "tags"), "*.particle", SearchOption.AllDirectories);
 
             Stopwatch batchTimer = Stopwatch.StartNew();
             Utils.ExtractTagsBatch(allEffects, "effect", h2ek);
+            Utils.ExtractTagsBatch(allParticles, "particle", h2ek);
             batchTimer.Stop();
             Console.WriteLine($"Batch XML export took {batchTimer.Elapsed}\n");
 
@@ -122,6 +124,8 @@ namespace H2ToH3EffectConverter
 #if DEBUG
             debugOutput = true;
 #endif
+
+            Stopwatch convertTimer = Stopwatch.StartNew();
             foreach (string h2EffectPath in allEffects)
             {
                 string outputFolder = Utils.H2ToH3Path(h2EffectPath);
@@ -131,8 +135,10 @@ namespace H2ToH3EffectConverter
                 Console.WriteLine($"Converted: {i + 1}/{allEffects.Length} effect tags");
                 i++;
             }
+            convertTimer.Stop();
 
-            Console.WriteLine("Done all! Press enter to exit.");
+            Console.WriteLine($"\nFinished!\nXML export took: {batchTimer.Elapsed}\nConversion took: {convertTimer.Elapsed}\nTotal time: {batchTimer.Elapsed + convertTimer.Elapsed}");
+            Console.WriteLine("\nPress enter to exit.");
             Console.ReadLine();
         }
     }
