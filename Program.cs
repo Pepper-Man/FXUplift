@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -111,6 +112,11 @@ namespace H2ToH3EffectConverter
 
             string[] allEffects = Directory.GetFiles(Path.Combine(h2ek, "tags"), "*.effect", SearchOption.AllDirectories);
 
+            Stopwatch batchTimer = Stopwatch.StartNew();
+            Utils.ExtractTagsBatch(allEffects, "effect", h2ek);
+            batchTimer.Stop();
+            Console.WriteLine($"Batch XML export took {batchTimer.Elapsed}\n");
+
             int i = 0;
             bool debugOutput = false;
 #if DEBUG
@@ -126,7 +132,8 @@ namespace H2ToH3EffectConverter
                 i++;
             }
 
-            Console.WriteLine("Done all!");
+            Console.WriteLine("Done all! Press enter to exit.");
+            Console.ReadLine();
         }
     }
 }

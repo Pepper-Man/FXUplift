@@ -170,31 +170,14 @@ namespace H2ToH3EffectConverter
         public static string ExtractTagXML(string h2TagPath, string type, string h2ek)
         {
             string toolExePath = Path.Combine(h2ek, "tool.exe");
-            string subFolder = "";
-
-            if (type == "effect")
-            {
-                subFolder = "xml\\effects";
-            }
-            else if (type == "particle physics")
-            {
-                subFolder = "xml\\particle_phys";
-            }
-            else if (type == "particle")
-            {
-                subFolder = "xml\\particles";
-            }
-
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string xmlDir = Path.Combine(baseDir, subFolder);
-            Directory.CreateDirectory(xmlDir);
-
             if (!File.Exists(toolExePath)) throw new FileNotFoundException($"Could not find tool.exe at \"{toolExePath}\".", toolExePath);
 
-            string tagName = Path.GetFileNameWithoutExtension(h2TagPath);
-            string xmlOutPath = Path.Combine(xmlDir, $"{tagName}.xml");
+            string xmlOutPath = GetXmlOutPath(h2TagPath, type);
 
-            // Delete any previous export so a failed export is never mistaken for a fresh one
+            // Reuse an export made earlier if the tag hasn't changed since
+            if (HasFreshXml(h2TagPath, xmlOutPath)) return xmlOutPath;
+
+            // Delete any stale or invalid export so a failed or old export is never mistaken for a fresh one
             if (File.Exists(xmlOutPath)) File.Delete(xmlOutPath);
 
             // Build arguments
@@ -246,6 +229,84 @@ namespace H2ToH3EffectConverter
             if (!File.Exists(xmlOutPath)) throw new FileNotFoundException($"tool.exe did not produce an XML file for \"{h2TagPath}\".", xmlOutPath);
 
             return xmlOutPath;
+        }
+
+        public static void ExtractTagsBatch(IEnumerable<string> h2TagPaths, string type, string h2ek, int chunkSize = 250)
+        {
+            string toolExePath = Path.Combine(h2ek, "tool.exe");
+            if (!File.Exists(toolExePath)) throw new FileNotFoundException($"Could not find tool.exe at \"{toolExePath}\".", toolExePath);
+
+            string tagsRoot = Path.Combine(h2ek, "tags") + Path.DirectorySeparatorChar;
+            char[] listingBreakers = { ',', '\t', '\r', '\n' }; // Would corrupt the delicate batch txt "<tag>,<outputpath>" format
+
+            // Collect the tags that actually need exporting
+            List<KeyValuePair<string, string>> toExport = new List<KeyValuePair<string, string>>();
+            int leftForIndividual = 0;
+            foreach (string tagPath in h2TagPaths)
+            {
+                string xmlOutPath = GetXmlOutPath(tagPath, type);
+                if (HasFreshXml(tagPath, xmlOutPath)) continue;
+
+                if (!tagPath.StartsWith(tagsRoot, StringComparison.OrdinalIgnoreCase) ||
+                    tagPath.IndexOfAny(listingBreakers) >= 0 || xmlOutPath.IndexOfAny(listingBreakers) >= 0)
+                {
+                    leftForIndividual++; // Will corrupt the batch txt data, so extract this individually
+                    continue;
+                }
+
+                if (File.Exists(xmlOutPath)) File.Delete(xmlOutPath); // Stale or bad data
+                toExport.Add(new KeyValuePair<string, string>(tagPath, xmlOutPath));
+            }
+
+            Console.WriteLine($"XML batch export ({type}): {toExport.Count} to batch export, {leftForIndividual} left for individual export.");
+            if (toExport.Count == 0) return;
+
+            string listPath = Path.Combine(Path.GetTempPath(), "h2_export_list.txt");
+            int chunkCount = (toExport.Count + chunkSize - 1) / chunkSize;
+
+            for (int c = 0; c < chunkCount; c++)
+            {
+                List<KeyValuePair<string, string>> chunk = toExport.Skip(c * chunkSize).Take(chunkSize).ToList();
+
+                // Format must be "<tags\relative\tag.extension>,<full\output\filepath.xml>"
+                // and the final line MUST end with a line break
+                File.WriteAllText(listPath, string.Concat(chunk.Select(kv => kv.Key.Substring(tagsRoot.Length) + "," + kv.Value + "\r\n")), Encoding.Default);
+
+                ProcessStartInfo psi = new ProcessStartInfo
+                {
+                    FileName = toolExePath,
+                    Arguments = $"export-tags-to-xml \"{listPath}\"",
+                    WorkingDirectory = h2ek,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (Process process = new Process { StartInfo = psi })
+                {
+                    // Per-tag progress lines are discarded; report per chunk instead
+                    process.OutputDataReceived += (sender, e) => { };
+                    process.ErrorDataReceived += (sender, e) => { };
+                    process.Start();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                    {
+                        Console.WriteLine($"[Warning] tool.exe exited with code {process.ExitCode} during batch {c + 1}/{chunkCount}.");
+                    }
+                }
+
+                Console.WriteLine($"  batch {c + 1}/{chunkCount} done");
+            }
+
+            int missing = toExport.Count(kv => !HasFreshXml(kv.Key, kv.Value));
+            if (missing > 0)
+            {
+                Console.WriteLine($"[Warning] {missing} tags weren't exported by the batch and will be exported individually.");
+            }
         }
 
         private const string H2TagsRootToken = "H2EK\\tags";
@@ -649,6 +710,42 @@ namespace H2ToH3EffectConverter
             }
 
             return editingKit;
+        }
+
+        // Get folder the exported XMLs for a tag type live in
+        private static string GetXmlDir(string type)
+        {
+            string subFolder = "";
+            if (type == "effect") subFolder = "xml\\effects";
+            else if (type == "particle physics") subFolder = "xml\\particle_phys";
+            else if (type == "particle") subFolder = "xml\\particles";
+
+            string xmlDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, subFolder);
+            Directory.CreateDirectory(xmlDir);
+            return xmlDir;
+        }
+
+        // Short hash of the full tag path, so same-named tags in different folders get different XML files
+        private static string ShortPathHash(string path)
+        {
+            using (var sha1 = System.Security.Cryptography.SHA1.Create())
+            {
+                byte[] hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(path.ToLowerInvariant()));
+                return BitConverter.ToString(hash, 0, 4).Replace("-", "");
+            }
+        }
+
+        public static string GetXmlOutPath(string h2TagPath, string type)
+        {
+            string tagName = Path.GetFileNameWithoutExtension(h2TagPath);
+            return Path.Combine(GetXmlDir(type), $"{tagName}_{ShortPathHash(h2TagPath)}.xml");
+        }
+
+        // An export should be reused if it exists, isn't empty, and is at least as new as the tag
+        private static bool HasFreshXml(string h2TagPath, string xmlOutPath)
+        {
+            FileInfo xml = new FileInfo(xmlOutPath);
+            return xml.Exists && xml.Length > 0 && xml.LastWriteTimeUtc >= File.GetLastWriteTimeUtc(h2TagPath);
         }
     }
 }
