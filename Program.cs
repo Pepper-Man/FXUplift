@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,26 +12,35 @@ namespace H2ToH3EffectConverter
         {
             Console.WriteLine("FXUplift: A Halo 2 to Halo 3 effect converter\n\n");
 
-            while (true)
+            try
             {
-                Console.WriteLine("Single or Bulk effect tag conversion? (S/B):");
-                string userInput = Console.ReadLine();
-                if (userInput.ToLower() == "s")
+                while (true)
                 {
-                    Console.WriteLine("Selected single tag conversion.\n");
-                    SingleTagConversion();
-                    break;
-                }
-                else if (userInput.ToLower() == "b")
-                {
-                    Console.WriteLine("Selected bulk tag conversion.\n");
-                    BulkTagConversion();
-                    break;
-                }
+                    Console.WriteLine("Single or Bulk effect tag conversion? (S/B):");
+                    string userInput = Console.ReadLine();
+                    if (userInput.ToLower() == "s")
+                    {
+                        Console.WriteLine("Selected single tag conversion.\n");
+                        SingleTagConversion();
+                        break;
+                    }
+                    else if (userInput.ToLower() == "b")
+                    {
+                        Console.WriteLine("Selected bulk tag conversion.\n");
+                        BulkTagConversion();
+                        break;
+                    }
 
-                Console.WriteLine("Invalid input. Enter \"S\" or \"B\" characters only. Please try again.");
+                    Console.WriteLine("Invalid input. Enter \"S\" or \"B\" characters only. Please try again.");
+                }
             }
-
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\nUnexpected error: {ex.GetType().Name}: {ex.Message}");
+#if DEBUG
+                Console.WriteLine(ex.StackTrace);
+#endif
+            }
 
             // TEMPORARY HARDCODING
             /*
@@ -42,6 +52,9 @@ namespace H2ToH3EffectConverter
             ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek, true);
             WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
             */
+
+            Console.WriteLine("\nPress enter to exit.");
+            Console.ReadLine();
         }
 
         static void SingleTagConversion()
@@ -119,27 +132,46 @@ namespace H2ToH3EffectConverter
             batchTimer.Stop();
             Console.WriteLine($"Batch XML export took {batchTimer.Elapsed}\n");
 
-            int i = 0;
             bool debugOutput = false;
 #if DEBUG
             debugOutput = true;
 #endif
 
+            int converted = 0;
+            List<string> failures = new List<string>();
+
             Stopwatch convertTimer = Stopwatch.StartNew();
-            foreach (string h2EffectPath in allEffects)
+            for (int n = 0; n < allEffects.Length; n++)
             {
-                string outputFolder = Utils.H2ToH3Path(h2EffectPath);
-                string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
-                ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek, debugOutput);
-                WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
-                Console.WriteLine($"Converted: {i + 1}/{allEffects.Length} effect tags");
-                i++;
+                string h2EffectPath = allEffects[n];
+                try
+                {
+                    string outputFolder = Utils.H2ToH3Path(h2EffectPath);
+                    string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
+                    ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek, debugOutput);
+                    WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
+                    converted++;
+                    Console.WriteLine($"Converted: {n + 1}/{allEffects.Length} effect tags");
+                }
+                catch (Exception e)
+                {
+                    failures.Add($"{h2EffectPath}\n    {e.GetType().Name}: {e.Message}");
+                    Console.WriteLine($"FAILED: {n + 1}/{allEffects.Length} - {h2EffectPath}\n    {e.GetType().Name}: {e.Message}");
+                }
+                
             }
             convertTimer.Stop();
 
-            Console.WriteLine($"\nFinished!\nXML export took: {batchTimer.Elapsed}\nConversion took: {convertTimer.Elapsed}\nTotal time: {batchTimer.Elapsed + convertTimer.Elapsed}");
-            Console.WriteLine("\nPress enter to exit.");
-            Console.ReadLine();
+            Console.WriteLine($"\nFinished! Converted: {converted}, failed: {failures.Count}");
+
+            if (failures.Count > 0)
+            {
+                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bulk_conversion_failures.txt");
+                File.WriteAllText(logPath, string.Join("\n\n", failures));
+                Console.WriteLine($"Failed tags are listen in: \"{logPath}\"");
+            }
+
+            Console.WriteLine($"XML export took: {batchTimer.Elapsed}\nConversion took: {convertTimer.Elapsed}\nTotal time: {batchTimer.Elapsed + convertTimer.Elapsed}");
         }
     }
 }
