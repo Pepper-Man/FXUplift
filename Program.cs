@@ -113,7 +113,7 @@ namespace H2ToH3EffectConverter
 
         static void BulkTagConversion()
         {
-            Console.WriteLine("The bulk option will convert ALL effect tags within \"H2EK\\tags\" and will take a while.\nAre you sure you want to proceed? (Y/N):");
+            Console.WriteLine("The bulk option will convert ALL effect tags within \"H2EK\\tags\".\nAll tags will be written to \"H3EK\\tags\\halo_2\".\nANY EXISTING H2 EFFECTS WILL BE OVERWRITTEN, so make a backup of your \"H3EK\\tags\\halo_2\\effects\" directory.\nAre you sure you want to proceed? (Y/N):");
             string input = Console.ReadLine();
             if (input.ToLower() != "y")
             {
