@@ -109,6 +109,7 @@ namespace H2ToH3EffectConverter
 #endif
             ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek, debugOutput);
             WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
+            Console.WriteLine($"\nFinished! Converted tag written to \"{existingH3Tag}\"");
         }
 
         static void BulkTagConversion()

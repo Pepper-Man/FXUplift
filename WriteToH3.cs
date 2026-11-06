@@ -53,7 +53,7 @@ namespace H2ToH3EffectConverter
 
         private static void WriteEffectData(string h3ekPath, TagFile tagFile, Effect effect)
         {
-            Console.WriteLine("Writing tag data");
+            Console.WriteLine("Writing tag data...");
 
             // MARKERS ----------------------------------------------------------------------------------------
             int markerCount = effect.Markers.Count();
