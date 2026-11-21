@@ -11,7 +11,7 @@ namespace H2ToH3EffectConverter
         static void Main(string[] args)
         {
             Console.WriteLine("FXUplift: A Halo 2 to Halo 3 effect converter\n\n");
-
+            
             try
             {
                 while (true)
@@ -41,13 +41,13 @@ namespace H2ToH3EffectConverter
                 Console.WriteLine(ex.StackTrace);
 #endif
             }
-
+            
             // TEMPORARY HARDCODING
             /*
-            string h2EffectPath = "G:\\Steam\\steamapps\\common\\H2EK\\tags\\effects\\scenarios\\objects\\solo\\deltatemple\\gondola\\gondola_beam_rail.effect";
+            string h2EffectPath = "G:\\Steam\\steamapps\\common\\H2EK\\tags\\effects\\scenery\\solids\\fountain_mist_large.effect";
             string h3ek = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\H3EK";
             string h2ek = Utils.GetH2EKPath(h2EffectPath);
-            string outputFolder = "halo_2\\effe_test\\gondola_beam_rail";
+            string outputFolder = "halo_2\\effe_test\\foundtain_mist_large";
             string h2XmlPath = Utils.ExtractTagXML(h2EffectPath, "effect", h2ek);
             ReadFromH2.Effect effect = ReadFromH2.GetEffectDataFromXML(h2XmlPath, h2ek, h3ek, true);
             WriteToH3.WriteH3Effect(h3ek, outputFolder, effect);
